@@ -2,260 +2,200 @@
 <html lang="zh-HK">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>立體圖形配對通關（圖片版）</title>
 
   <style>
-    :root{
-      --bg:#f6f7fb; --card:#ffffff; --ink:#111827; --muted:#6b7280;
-      --line:#e5e7eb; --good:#16a34a; --bad:#dc2626; --accent:#2563eb;
-    }
-
     body{
       margin:0;
       font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
-      background:var(--bg);
-      color:var(--ink);
+      background:#f6f7fb;
+      color:#111827;
     }
 
     header{
-      padding:16px 18px;
-      background:#fff;
-      border-bottom:1px solid var(--line);
+      padding:16px;
+      background:#ffffff;
+      border-bottom:1px solid #e5e7eb;
     }
+
     header h1{ margin:0; font-size:18px; }
-    header p{
-      margin:6px 0 0;
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.4;
-    }
+    header p{ margin:6px 0 0; font-size:13px; color:#6b7280; }
 
     .wrap{
       max-width:1100px;
       margin:0 auto;
-      padding:16px 18px 28px;
+      padding:16px;
     }
 
     .top{
       display:grid;
-      grid-template-columns: 1.15fr 1.85fr;
+      grid-template-columns: 1.1fr 1.9fr;
       gap:14px;
-      align-items:start;
     }
 
     .panel{
-      background:var(--card);
-      border:1px solid var(--line);
+      background:#ffffff;
+      border:1px solid #e5e7eb;
       border-radius:14px;
-      box-shadow:0 8px 24px rgba(0,0,0,.06);
+      box-shadow:0 8px 20px rgba(0,0,0,.06);
     }
 
-    .panel .hd{
+    .hd{
       padding:12px 14px;
-      border-bottom:1px solid var(--line);
+      border-bottom:1px solid #e5e7eb;
       display:flex;
       justify-content:space-between;
       align-items:center;
-      gap:10px;
     }
 
-    .panel .hd .meta{
-      font-size:13px;
-      color:var(--muted);
-    }
-
-    .panel .bd{ padding:12px 14px; }
-
-    .controls{ display:flex; gap:8px; flex-wrap:wrap; }
+    .bd{ padding:14px; }
 
     button{
-      border:1px solid var(--line);
-      background:#fff;
-      padding:10px 12px;
-      border-radius:12px;
-      font-size:14px;
+      padding:8px 12px;
+      border-radius:10px;
+      border:1px solid #e5e7eb;
+      background:#ffffff;
       cursor:pointer;
+      font-size:14px;
     }
 
     button.primary{
-      background:var(--accent);
-      color:#fff;
-      border-color:transparent;
+      background:#2563eb;
+      color:#ffffff;
+      border:none;
     }
 
-    button:disabled{
-      opacity:.5;
-      cursor:not-allowed;
-    }
+    button:disabled{ opacity:.5; }
 
-    /* 左邊圖片 */
+    /* 圖片區 */
     #imgWrap{
       height:360px;
+      border:1px solid #e5e7eb;
       border-radius:12px;
-      overflow:hidden;
-      background:#ffffff;
       display:flex;
       align-items:center;
       justify-content:center;
-      border:1px solid var(--line);
+      background:#ffffff;
     }
 
     #shapeImg{
       width:100%;
       height:100%;
       object-fit:contain;
-      display:block;
-      background:#ffffff;
     }
 
     .status{
       margin-top:10px;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px dashed var(--line);
-      color:var(--muted);
+      padding:10px;
+      border-radius:10px;
+      border:1px dashed #e5e7eb;
       font-size:14px;
-      line-height:1.5;
+      color:#374151;
     }
 
-    .status.good{
-      border-color:rgba(22,163,74,.35);
-      background:rgba(22,163,74,.07);
-      color:#0f5f2b;
-    }
-
-    .status.bad{
-      border-color:rgba(220,38,38,.35);
-      background:rgba(220,38,38,.07);
-      color:#7f1d1d;
-    }
+    .good{ background:#ecfdf5; border-color:#86efac; }
+    .bad{ background:#fef2f2; border-color:#fecaca; }
 
     .grid{
       display:grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
+      grid-template-columns: repeat(2, 1fr);
       gap:12px;
     }
 
-    .group{ padding:12px 12px 14px; }
-
     .group h3{
-      margin:0 0 8px;
+      margin:0 0 6px;
       font-size:14px;
-      color:#111827;
     }
 
-    .opts{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-    }
+    .opts{ display:flex; flex-wrap:wrap; gap:8px; }
 
     .opt{
-      padding:10px 10px;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background:#fff;
-      font-size:14px;
+      padding:8px 10px;
+      border:1px solid #e5e7eb;
+      border-radius:10px;
       cursor:pointer;
-      user-select:none;
+      background:#ffffff;
     }
 
     .opt.selected{
       outline:2px solid rgba(37,99,235,.35);
-      border-color:rgba(37,99,235,.55);
+      border-color:#2563eb;
     }
 
-    .footerRow{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      justify-content:space-between;
+    .footer{
       padding:12px 14px;
-      border-top:1px solid var(--line);
+      border-top:1px solid #e5e7eb;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-size:13px;
+      color:#6b7280;
     }
 
-    .score{ font-size:13px; color:var(--muted); }
-    .hint{ font-size:13px; color:var(--muted); }
-
-    @media (max-width:900px){
-      .top{ grid-template-columns: 1fr; }
-      #imgWrap{ height:320px; }
+    @media(max-width:900px){
+      .top{ grid-template-columns:1fr; }
+      #imgWrap{ height:300px; }
     }
   </style>
 </head>
 
 <body>
 <header>
-  <h1>立體圖形配對通關（圖片版）</h1>
-  <p>觀察左邊立體圖形圖片，在右邊四類字卡中各選一張。四類都正確才算通關。</p>
+  <h1>立體圖形配對通關</h1>
+  <p>觀察左邊立體圖形圖片，完成右邊四類配對。</p>
 </header>
 
 <div class="wrap">
   <div class="top">
 
-    <!-- 左：圖片 -->
+    <!-- 左邊圖片 -->
     <div class="panel">
       <div class="hd">
+        <strong>立體圖形</strong>
         <div>
-          <div style="font-weight:700;">立體圖形圖片</div>
-          <div class="meta" id="shapeMeta">請觀察圖形，完成配對。</div>
-        </div>
-        <div class="controls">
           <button id="btnNew">下一題</button>
           <button id="btnReset">重設</button>
         </div>
       </div>
-
       <div class="bd">
         <div id="imgWrap">
-          <img id="shapeImg" alt="立體圖形" />
+          <img id="shapeImg" />
         </div>
         <div id="status" class="status">
-          提示：四類字卡都要揀，先可以提交。
+          提示：請完成右邊四類配對。
         </div>
       </div>
     </div>
 
-    <!-- 右：配對 -->
+    <!-- 右邊配對 -->
     <div class="panel">
       <div class="hd">
-        <div style="font-weight:700;">四類字卡配對</div>
-        <div class="meta">每類選 1 張</div>
+        <strong>四類字卡配對</strong>
       </div>
-
       <div class="bd">
         <div class="grid">
-
-          <div class="panel group">
+          <div class="group">
             <h3>A 類：柱體／錐</h3>
-            <div class="opts" id="groupA"></div>
+            <div class="opts" id="A"></div>
           </div>
-
-          <div class="panel group">
+          <div class="group">
             <h3>B 類：側面形狀</h3>
-            <div class="opts" id="groupB"></div>
+            <div class="opts" id="B"></div>
           </div>
-
-          <div class="panel group">
+          <div class="group">
             <h3>C 類：總面數</h3>
-            <div class="opts" id="groupC"></div>
+            <div class="opts" id="C"></div>
           </div>
-
-          <div class="panel group">
+          <div class="group">
             <h3>D 類：名字</h3>
-            <div class="opts" id="groupD"></div>
+            <div class="opts" id="D"></div>
           </div>
-
         </div>
       </div>
-
-      <div class="footerRow">
-        <div class="score" id="score">已通關：0 ｜ 總題數：0</div>
-        <div style="display:flex; gap:8px; align-items:center;">
-          <span class="hint" id="pickHint">四類都要揀先可提交</span>
-          <button class="primary" id="btnSubmit" disabled>提交</button>
-        </div>
+      <div class="footer">
+        <span id="score">已通關：0 ｜ 總題數：0</span>
+        <button class="primary" id="btnSubmit" disabled>提交</button>
       </div>
     </div>
 
@@ -263,149 +203,117 @@
 </div>
 
 <script>
-/* ========= 資料 ========= */
-const POLY_N = [3,4,5];
-const TYPES = ["pyramid","prism"];
+/* ===== 資料 ===== */
+const Ns = [3,4,5];
+const Types = ["pyramid","prism"];
+const map = {3:"三",4:"四",5:"五"};
 
-function shapeName(n, type){
-  const map = {3:"三",4:"四",5:"五"};
-  return map[n] + (type==="pyramid" ? "角錐" : "角柱");
-}
+function shapeName(n,t){ return map[n] + (t==="pyramid"?"角錐":"角柱"); }
+function faces(n,t){ return t==="pyramid"? n+1 : n+2; }
+function imgPath(n,t){ return t + n + ".svg"; }
 
-function facesCount(n, type){
-  return (type==="pyramid") ? (n+1) : (n+2);
-}
+/* ===== 狀態 ===== */
+let current, cleared=0, total=0;
+let pick={A:null,B:null,C:null,D:null};
 
-function solidTypeLabel(type){
-  return (type==="pyramid") ? "它是錐" : "它是柱體";
-}
+/* ===== DOM ===== */
+const img=document.getElementById("shapeImg");
+const status=document.getElementById("status");
+const score=document.getElementById("score");
+const submit=document.getElementById("btnSubmit");
+const btnNew=document.getElementById("btnNew");
+const btnReset=document.getElementById("btnReset");
+const groups={A:A,B:B,C:C,D:D};
 
-function lateralFaceLabel(type){
-  return (type==="pyramid") ? "它的側面是三角形" : "它的側面是四邊形";
-}
-
-/* ⭐ 圖片路徑（同一層） */
-function imgPath(n, type){
-  return `${type}${n}.svg`;
-}
-
-/* ========= 工具 ========= */
+/* ===== 工具 ===== */
 function shuffle(a){
-  const arr = a.slice();
-  for(let i=arr.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [arr[i],arr[j]]=[arr[j],arr[i]];
+  const b=a.slice();
+  for(let i=b.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [b[i],b[j]]=[b[j],b[i]];
   }
-  return arr;
+  return b;
 }
-function sample(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
-/* ========= DOM ========= */
-const els = {
-  img: document.getElementById("shapeImg"),
-  meta: document.getElementById("shapeMeta"),
-  status: document.getElementById("status"),
-  score: document.getElementById("score"),
-  pickHint: document.getElementById("pickHint"),
-  submit: document.getElementById("btnSubmit"),
-  newBtn: document.getElementById("btnNew"),
-  resetBtn: document.getElementById("btnReset"),
-  A: document.getElementById("groupA"),
-  B: document.getElementById("groupB"),
-  C: document.getElementById("groupC"),
-  D: document.getElementById("groupD")
-};
-
-/* ========= 狀態 ========= */
-let current = null;
-let selected = {A:null,B:null,C:null,D:null};
-let cleared = 0, total = 0;
-
-/* ========= 功能 ========= */
-function resetSelection(){
-  selected = {A:null,B:null,C:null,D:null};
+/* ===== 功能 ===== */
+function resetPick(){
+  pick={A:null,B:null,C:null,D:null};
   document.querySelectorAll(".opt").forEach(o=>o.classList.remove("selected"));
-  els.submit.disabled = true;
-  els.pickHint.textContent = "四類都要揀先可提交";
-  els.status.className = "status";
-  els.status.textContent = "提示：四類字卡都要揀。";
-  els.meta.textContent = "請觀察圖形，完成配對。";
+  submit.disabled=true;
+  status.className="status";
+  status.textContent="提示：請完成右邊四類配對。";
 }
 
-function makeOption(group, text){
-  const d = document.createElement("div");
-  d.className = "opt";
-  d.textContent = text;
-  d.onclick = ()=>{
-    selected[group] = text;
-    [...els[group].children].forEach(c=>c.classList.toggle("selected", c===d));
-    els.submit.disabled = !(selected.A && selected.B && selected.C && selected.D);
+function option(group,text){
+  const d=document.createElement("div");
+  d.className="opt";
+  d.textContent=text;
+  d.onclick=()=>{
+    pick[group]=text;
+    [...groups[group].children].forEach(c=>c.classList.toggle("selected",c===d));
+    submit.disabled=!(pick.A&&pick.B&&pick.C&&pick.D);
   };
   return d;
 }
 
-function buildCards(){
-  const {n,type} = current;
-  els.A.innerHTML = els.B.innerHTML = els.C.innerHTML = els.D.innerHTML = "";
-  resetSelection();
+function build(){
+  for(const k in groups) groups[k].innerHTML="";
+  resetPick();
 
-  const ans = {
-    A: solidTypeLabel(type),
-    B: lateralFaceLabel(type),
-    C: `它總共有（${facesCount(n,type)}）個面`,
-    D: `它的名字是（${shapeName(n,type)}）`
+  const {n,t}=current;
+  const ans={
+    A: t==="pyramid"?"它是錐":"它是柱體",
+    B: t==="pyramid"?"它的側面是三角形":"它的側面是四邊形",
+    C: `它總共有（${faces(n,t)}）個面`,
+    D: `它的名字是（${shapeName(n,t)}）`
   };
-  current.answers = ans;
+  current.ans=ans;
 
-  shuffle(["它是柱體","它是錐"]).forEach(t=>els.A.appendChild(makeOption("A",t)));
-  shuffle(["它的側面是三角形","它的側面是四邊形"]).forEach(t=>els.B.appendChild(makeOption("B",t)));
+  shuffle(["它是柱體","它是錐"]).forEach(v=>groups.A.appendChild(option("A",v)));
+  shuffle(["它的側面是三角形","它的側面是四邊形"]).forEach(v=>groups.B.appendChild(option("B",v)));
+  shuffle([faces(n,t),5,6,7].slice(0,3)).forEach(v=>groups.C.appendChild(option("C",`它總共有（${v}）個面`)));
 
-  const cPool = shuffle([facesCount(n,type), 5, 6, 7]).slice(0,3);
-  cPool.map(v=>`它總共有（${v}）個面`).forEach(t=>els.C.appendChild(makeOption("C",t)));
-
-  const names = [];
+  const names=[];
   while(names.length<4){
-    const nm = shapeName(sample(POLY_N), sample(TYPES));
+    const nm=shapeName(Ns[Math.floor(Math.random()*3)],Types[Math.floor(Math.random()*2)]);
     if(!names.includes(nm)) names.push(nm);
   }
-  shuffle(names.map(v=>`它的名字是（${v}）`))
-    .forEach(t=>els.D.appendChild(makeOption("D",t)));
+  shuffle(names.map(v=>`它的名字是（${v}）`)).forEach(v=>groups.D.appendChild(option("D",v)));
 }
 
-function newQuestion(){
-  const n = sample(POLY_N);
-  const type = sample(TYPES);
-  current = {n,type};
+function newQ(){
+  current={n:Ns[Math.floor(Math.random()*3)],t:Types[Math.floor(Math.random()*2)]};
   total++;
-  els.score.textContent = `已通關：${cleared} ｜ 總題數：${total}`;
-  els.img.src = imgPath(n,type);
-  buildCards();
+  score.textContent=`已通關：${cleared} ｜ 總題數：${total}`;
+  img.src=imgPath(current.n,current.t);
+  img.onerror=()=>{
+    status.className="status bad";
+    status.textContent="圖片未成功載入。請確認 pyramid3.svg 等圖片與 index.html 放在同一層，並已 commit。";
+  };
+  build();
 }
 
-function submit(){
-  const wrong = [];
-  for(const k in current.answers){
-    if(selected[k] !== current.answers[k]) wrong.push(k);
-  }
+function submitAns(){
+  const wrong=Object.keys(current.ans).filter(k=>pick[k]!==current.ans[k]);
   if(wrong.length===0){
     cleared++;
-    els.score.textContent = `已通關：${cleared} ｜ 總題數：${total}`;
-    els.status.className = "status good";
-    els.status.textContent = "🎉 通關成功！";
-    els.meta.textContent = `本關圖形：${shapeName(current.n,current.type)}`;
+    score.textContent=`已通關：${cleared} ｜ 總題數：${total}`;
+    status.className="status good";
+    status.textContent="🎉 通關成功！";
   }else{
-    els.status.className = "status bad";
-    els.status.textContent = "未通關，請再試。";
+    status.className="status bad";
+    status.textContent="未通關，請再試。";
   }
 }
 
-/* ========= 事件 ========= */
-els.submit.onclick = submit;
-els.newBtn.onclick = newQuestion;
-els.resetBtn.onclick = resetSelection;
+/* ===== 事件 ===== */
+btnNew.onclick=newQ;
+btnReset.onclick=resetPick;
+submit.onclick=submitAns;
 
-/* ========= 開始 ========= */
-newQuestion();
+/* ===== 開始 ===== */
+newQ();
 </script>
 </body>
 </html>
+
