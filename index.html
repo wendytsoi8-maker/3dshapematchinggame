@@ -485,11 +485,11 @@
 
 <script>
 /* =========================================================
-   ✅ 只改呢行就可切換 SVG / PNG
+   ✅ 切換圖片格式：只改呢一行
    - 用 SVG： "svg"
    - 用 PNG： "png"
 ========================================================= */
-const IMAGE_EXT = "svg"; // ← 改成 "png" 就用 PNG
+const IMAGE_EXT = "png"; // ← 你要 PNG 就保持 "png"
 
 /* ========= 固定 6 個題庫 ========= */
 const SHAPES = [
@@ -502,7 +502,7 @@ const SHAPES = [
 ];
 
 function facesCount(n,t){ return (t==="pyramid") ? (n+1) : (n+2); }
-function imgPath(n,t){ return `${t}${n}.${IMAGE_EXT}`; } // 同一層
+function imgPath(n,t){ return t + n + "." + IMAGE_EXT; } // 同一層
 
 /* ========= DOM ========= */
 const el = {
@@ -599,7 +599,7 @@ function confetti(){
     c.style.left = (5 + Math.random()*90) + "%";
     c.style.top = (-20 - Math.random()*40) + "px";
     c.style.background = colors[Math.floor(Math.random()*colors.length)];
-    c.style.transform = `rotate(${Math.random()*180}deg)`;
+    c.style.transform = "rotate(" + (Math.random()*180) + "deg)";
     c.style.animationDuration = (900 + Math.random()*650) + "ms";
     el.fx.appendChild(c);
     setTimeout(()=>c.remove(), 1600);
@@ -648,8 +648,8 @@ function buildCards(){
   current.ans = {
     A: (t==="prism") ? "角柱" : "角錐",
     B: (t==="prism") ? "側面是四邊形" : "側面是三角形",
-    C: `總共有（${facesCount(n,t)}）個面`,
-    D: `名字是（${name}）`,
+    C: "總共有（" + facesCount(n,t) + "）個面",
+    D: "名字是（" + name + "）",
   };
 
   // A
@@ -665,7 +665,7 @@ function buildCards(){
     const s = pickOne(SHAPES);
     faceSet.add(facesCount(s.n, s.t));
   }
-  shuffle([...faceSet].map(v=>`總共有（${v}）個面`))
+  shuffle([...faceSet].map(v=>"總共有（" + v + "）個面"))
     .forEach(v=> el.C.appendChild(makeOpt("C", v)));
 
   // D：✅ 必含正確（從 6 個固定名字抽）
@@ -673,7 +673,7 @@ function buildCards(){
   const rest = namesAll.filter(x => x !== name);
   const dOpts = shuffle(rest).slice(0,3);
   dOpts.push(name);
-  shuffle(dOpts.map(v=>`名字是（${v}）`))
+  shuffle(dOpts.map(v=>"名字是（" + v + "）"))
     .forEach(v=> el.D.appendChild(makeOpt("D", v)));
 }
 
@@ -685,7 +685,7 @@ function loadImage(n,t){
 
   el.img.src = imgPath(n,t);
   el.img.onerror = ()=>{
-    setStatus("bad", `圖片載入失敗：請確認 ${imgPath(3,"pyramid")}、${imgPath(4,"prism")} 等檔案與 index.html 放同一層，並已 commit。`);
+    setStatus("bad", "圖片載入失敗：請確認 " + imgPath(3,"pyramid") + "、" + imgPath(4,"prism") + " 等檔案與 index.html 放同一層，且檔名完全一致（大小寫都要同）。");
   };
 }
 
@@ -702,7 +702,7 @@ function startTimer(){
   intervalId = setInterval(()=>{
     timeLeft -= 1;
     el.sec.textContent = String(timeLeft);
-    el.fill.style.transform = `scaleX(${Math.max(0, timeLeft/timeMax)})`;
+    el.fill.style.transform = "scaleX(" + Math.max(0, timeLeft/timeMax) + ")";
 
     // 最後 5 秒提示音
     if(timeLeft <= 5 && timeLeft > 0) sfxTick();
@@ -749,9 +749,9 @@ function submit(){
     el.cleared.textContent = String(cleared);
     el.streak.textContent = String(streak);
 
-    setStatus("good", `🎉 通關成功！連勝 +1（${streak}）｜1 秒後下一題…`);
+    setStatus("good", "🎉 通關成功！連勝 +1（" + streak + "）｜1 秒後下一題…");
     el.meta.textContent = "通關！";
-    el.meta2.textContent = `本關圖形：${current.name}`;
+    el.meta2.textContent = "本關圖形：" + current.name;
 
     confetti();
     sfxWin();
@@ -761,7 +761,7 @@ function submit(){
   }else{
     streak = 0;
     el.streak.textContent = String(streak);
-    setStatus("bad", `未通關：${wrong.join("、")} 類未配對正確，再試一次！`);
+    setStatus("bad", "未通關：" + wrong.join("、") + " 類未配對正確，再試一次！");
     shake();
     sfxWrong();
   }
