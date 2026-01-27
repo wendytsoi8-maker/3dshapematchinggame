@@ -4,64 +4,177 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>立體圖形配對通關（圖片版）</title>
+
   <style>
     :root{
-      --bg:#f6f7fb; --card:#fff; --ink:#111827; --muted:#6b7280;
+      --bg:#f6f7fb; --card:#ffffff; --ink:#111827; --muted:#6b7280;
       --line:#e5e7eb; --good:#16a34a; --bad:#dc2626; --accent:#2563eb;
     }
-    body{ margin:0; font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif; background:var(--bg); color:var(--ink); }
-    header{ padding:16px 18px; background:#fff; border-bottom:1px solid var(--line); }
-    header h1{ margin:0; font-size:18px; }
-    header p{ margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.4; }
 
-    .wrap{ max-width:1100px; margin:0 auto; padding:16px 18px 28px; }
-    .top{ display:grid; grid-template-columns: 1.15fr 1.85fr; gap:14px; align-items:start; }
-    .panel{ background:var(--card); border:1px solid var(--line); border-radius:14px; box-shadow:0 8px 24px rgba(0,0,0,.06); }
-    .panel .hd{ padding:12px 14px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:10px; }
-    .panel .hd .meta{ font-size:13px; color:var(--muted); }
+    body{
+      margin:0;
+      font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+    }
+
+    header{
+      padding:16px 18px;
+      background:#fff;
+      border-bottom:1px solid var(--line);
+    }
+    header h1{ margin:0; font-size:18px; }
+    header p{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.4;
+    }
+
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:16px 18px 28px;
+    }
+
+    .top{
+      display:grid;
+      grid-template-columns: 1.15fr 1.85fr;
+      gap:14px;
+      align-items:start;
+    }
+
+    .panel{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:14px;
+      box-shadow:0 8px 24px rgba(0,0,0,.06);
+    }
+
+    .panel .hd{
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+
+    .panel .hd .meta{
+      font-size:13px;
+      color:var(--muted);
+    }
+
     .panel .bd{ padding:12px 14px; }
 
     .controls{ display:flex; gap:8px; flex-wrap:wrap; }
+
     button{
-      border:1px solid var(--line); background:#fff; padding:10px 12px; border-radius:12px;
-      font-size:14px; cursor:pointer;
+      border:1px solid var(--line);
+      background:#fff;
+      padding:10px 12px;
+      border-radius:12px;
+      font-size:14px;
+      cursor:pointer;
     }
-    button.primary{ background:var(--accent); color:#fff; border-color:transparent; }
-    button:disabled{ opacity:.5; cursor:not-allowed; }
+
+    button.primary{
+      background:var(--accent);
+      color:#fff;
+      border-color:transparent;
+    }
+
+    button:disabled{
+      opacity:.5;
+      cursor:not-allowed;
+    }
 
     /* 左邊圖片 */
     #imgWrap{
-      height:360px; border-radius:12px; overflow:hidden;
-      background:#ffffff; display:flex; align-items:center; justify-content:center;
+      height:360px;
+      border-radius:12px;
+      overflow:hidden;
+      background:#ffffff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
       border:1px solid var(--line);
     }
+
     #shapeImg{
-      width:100%; height:100%;
-      object-fit:contain; display:block;
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      display:block;
       background:#ffffff;
     }
 
     .status{
-      margin-top:10px; padding:10px 12px; border-radius:12px;
-      border:1px dashed var(--line); color:var(--muted); font-size:14px; line-height:1.5;
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px dashed var(--line);
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.5;
     }
-    .status.good{ border-color:rgba(22,163,74,.35); background:rgba(22,163,74,.07); color:#0f5f2b; }
-    .status.bad{ border-color:rgba(220,38,38,.35); background:rgba(220,38,38,.07); color:#7f1d1d; }
 
-    .grid{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; }
-    .group{ padding:12px 12px 14px; }
-    .group h3{ margin:0 0 8px; font-size:14px; color:#111827; }
-    .opts{ display:flex; flex-wrap:wrap; gap:8px; }
-    .opt{
-      padding:10px 10px; border-radius:12px; border:1px solid var(--line); background:#fff;
-      font-size:14px; cursor:pointer; user-select:none;
+    .status.good{
+      border-color:rgba(22,163,74,.35);
+      background:rgba(22,163,74,.07);
+      color:#0f5f2b;
     }
-    .opt.selected{ outline:2px solid rgba(37,99,235,.35); border-color:rgba(37,99,235,.55); }
+
+    .status.bad{
+      border-color:rgba(220,38,38,.35);
+      background:rgba(220,38,38,.07);
+      color:#7f1d1d;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap:12px;
+    }
+
+    .group{ padding:12px 12px 14px; }
+
+    .group h3{
+      margin:0 0 8px;
+      font-size:14px;
+      color:#111827;
+    }
+
+    .opts{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    .opt{
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#fff;
+      font-size:14px;
+      cursor:pointer;
+      user-select:none;
+    }
+
+    .opt.selected{
+      outline:2px solid rgba(37,99,235,.35);
+      border-color:rgba(37,99,235,.55);
+    }
 
     .footerRow{
-      display:flex; gap:10px; align-items:center; justify-content:space-between;
-      padding:12px 14px; border-top:1px solid var(--line);
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      padding:12px 14px;
+      border-top:1px solid var(--line);
     }
+
     .score{ font-size:13px; color:var(--muted); }
     .hint{ font-size:13px; color:var(--muted); }
 
@@ -71,277 +184,227 @@
     }
   </style>
 </head>
+
 <body>
 <header>
-  <h1>立體圖形配對通關（圖片版：三～五角錐／三～五角柱）</h1>
-  <p>左邊顯示立體圖形圖片；右邊四類字卡各揀一張。四類全部正確先通關。</p>
+  <h1>立體圖形配對通關（圖片版）</h1>
+  <p>觀察左邊立體圖形圖片，在右邊四類字卡中各選一張。四類都正確才算通關。</p>
 </header>
 
 <div class="wrap">
   <div class="top">
+
     <!-- 左：圖片 -->
     <div class="panel">
       <div class="hd">
         <div>
           <div style="font-weight:700;">立體圖形圖片</div>
-          <div class="meta" id="shapeMeta">請觀察左邊圖形，完成右邊配對。</div>
+          <div class="meta" id="shapeMeta">請觀察圖形，完成配對。</div>
         </div>
         <div class="controls">
-          <button id="btnNew">下一題（隨機）</button>
-          <button id="btnReset">重設選擇</button>
+          <button id="btnNew">下一題</button>
+          <button id="btnReset">重設</button>
         </div>
       </div>
+
       <div class="bd">
         <div id="imgWrap">
           <img id="shapeImg" alt="立體圖形" />
         </div>
-        <div id="status" class="status">提示：四類都要揀先可以提交。</div>
+        <div id="status" class="status">
+          提示：四類字卡都要揀，先可以提交。
+        </div>
       </div>
     </div>
 
-    <!-- 右：字卡 -->
+    <!-- 右：配對 -->
     <div class="panel">
       <div class="hd">
         <div style="font-weight:700;">四類字卡配對</div>
-        <div class="meta">每類揀 1 張 → 提交</div>
+        <div class="meta">每類選 1 張</div>
       </div>
 
       <div class="bd">
         <div class="grid">
+
           <div class="panel group">
             <h3>A 類：柱體／錐</h3>
             <div class="opts" id="groupA"></div>
           </div>
+
           <div class="panel group">
             <h3>B 類：側面形狀</h3>
             <div class="opts" id="groupB"></div>
           </div>
+
           <div class="panel group">
             <h3>C 類：總面數</h3>
             <div class="opts" id="groupC"></div>
           </div>
+
           <div class="panel group">
             <h3>D 類：名字</h3>
             <div class="opts" id="groupD"></div>
           </div>
+
         </div>
       </div>
 
       <div class="footerRow">
-        <div class="score" id="score">已通關：0　｜　總題數：0</div>
+        <div class="score" id="score">已通關：0 ｜ 總題數：0</div>
         <div style="display:flex; gap:8px; align-items:center;">
           <span class="hint" id="pickHint">四類都要揀先可提交</span>
           <button class="primary" id="btnSubmit" disabled>提交</button>
         </div>
       </div>
     </div>
+
   </div>
 </div>
 
 <script>
-/* =========================
-   資料與規則
-========================= */
+/* ========= 資料 ========= */
 const POLY_N = [3,4,5];
-const TYPES = ["pyramid","prism"]; // 角錐 / 角柱
+const TYPES = ["pyramid","prism"];
 
 function shapeName(n, type){
   const map = {3:"三",4:"四",5:"五"};
   return map[n] + (type==="pyramid" ? "角錐" : "角柱");
 }
+
 function facesCount(n, type){
-  // n角錐：n+1；n角柱：n+2
-  return (type==="pyramid") ? (n + 1) : (n + 2);
+  return (type==="pyramid") ? (n+1) : (n+2);
 }
-function lateralFaceLabel(type){
-  return (type==="pyramid") ? "它的側面是三角形" : "它的側面是四邊形";
-}
+
 function solidTypeLabel(type){
   return (type==="pyramid") ? "它是錐" : "它是柱體";
 }
+
+function lateralFaceLabel(type){
+  return (type==="pyramid") ? "它的側面是三角形" : "它的側面是四邊形";
+}
+
+/* ⭐ 圖片路徑（同一層） */
 function imgPath(n, type){
-  // images/pyramid3.svg, images/prism5.svg ...
-  return `images/${type}${n}.svg`;
+  return `${type}${n}.svg`;
 }
 
-/* =========================
-   小工具
-========================= */
-function shuffle(arr){
-  const a = arr.slice();
-  for(let i=a.length-1;i>0;i--){
+/* ========= 工具 ========= */
+function shuffle(a){
+  const arr = a.slice();
+  for(let i=arr.length-1;i>0;i--){
     const j = Math.floor(Math.random()*(i+1));
-    [a[i],a[j]]=[a[j],a[i]];
+    [arr[i],arr[j]]=[arr[j],arr[i]];
   }
-  return a;
+  return arr;
 }
-function sampleOne(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-function uniquePush(arr, item){ if(!arr.includes(item)) arr.push(item); }
+function sample(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
-/* =========================
-   DOM
-========================= */
+/* ========= DOM ========= */
 const els = {
-  meta: document.getElementById("shapeMeta"),
   img: document.getElementById("shapeImg"),
+  meta: document.getElementById("shapeMeta"),
   status: document.getElementById("status"),
   score: document.getElementById("score"),
   pickHint: document.getElementById("pickHint"),
   submit: document.getElementById("btnSubmit"),
   newBtn: document.getElementById("btnNew"),
   resetBtn: document.getElementById("btnReset"),
-  groupA: document.getElementById("groupA"),
-  groupB: document.getElementById("groupB"),
-  groupC: document.getElementById("groupC"),
-  groupD: document.getElementById("groupD"),
+  A: document.getElementById("groupA"),
+  B: document.getElementById("groupB"),
+  C: document.getElementById("groupC"),
+  D: document.getElementById("groupD")
 };
 
-/* =========================
-   遊戲狀態
-========================= */
-let current = null; // {n, type, answers}
+/* ========= 狀態 ========= */
+let current = null;
 let selected = {A:null,B:null,C:null,D:null};
-let cleared = 0;
-let total = 0;
+let cleared = 0, total = 0;
 
-function updateScore(){
-  els.score.textContent = `已通關：${cleared}　｜　總題數：${total}`;
-}
-
-function clearGroups(){
-  els.groupA.innerHTML = "";
-  els.groupB.innerHTML = "";
-  els.groupC.innerHTML = "";
-  els.groupD.innerHTML = "";
-}
-
+/* ========= 功能 ========= */
 function resetSelection(){
   selected = {A:null,B:null,C:null,D:null};
-  document.querySelectorAll(".opt").forEach(o => o.classList.remove("selected"));
+  document.querySelectorAll(".opt").forEach(o=>o.classList.remove("selected"));
   els.submit.disabled = true;
   els.pickHint.textContent = "四類都要揀先可提交";
   els.status.className = "status";
-  els.status.textContent = "提示：四類都要揀先可以提交。";
-  // 不揭示答案
-  els.meta.textContent = "請觀察左邊圖形，完成右邊配對。";
+  els.status.textContent = "提示：四類字卡都要揀。";
+  els.meta.textContent = "請觀察圖形，完成配對。";
 }
 
-function updateSubmitState(){
-  const ok = selected.A && selected.B && selected.C && selected.D;
-  els.submit.disabled = !ok;
-  els.pickHint.textContent = ok ? "已選四類，可以提交" : "四類都要揀先可提交";
-}
-
-function makeOption(groupKey, text){
-  const b = document.createElement("div");
-  b.className = "opt";
-  b.textContent = text;
-  b.onclick = () => {
-    selected[groupKey] = text;
-    const groupEl = groupKey==="A"?els.groupA:groupKey==="B"?els.groupB:groupKey==="C"?els.groupC:els.groupD;
-    [...groupEl.children].forEach(ch => ch.classList.toggle("selected", ch.textContent===text));
-    updateSubmitState();
+function makeOption(group, text){
+  const d = document.createElement("div");
+  d.className = "opt";
+  d.textContent = text;
+  d.onclick = ()=>{
+    selected[group] = text;
+    [...els[group].children].forEach(c=>c.classList.toggle("selected", c===d));
+    els.submit.disabled = !(selected.A && selected.B && selected.C && selected.D);
   };
-  return b;
+  return d;
 }
 
 function buildCards(){
-  const {n, type} = current;
-  clearGroups();
+  const {n,type} = current;
+  els.A.innerHTML = els.B.innerHTML = els.C.innerHTML = els.D.innerHTML = "";
   resetSelection();
 
-  // correct answers
-  const ansA = solidTypeLabel(type);
-  const ansB = lateralFaceLabel(type);
-  const ansC = `它總共有（${facesCount(n,type)}）個面`;
-  const ansD = `它的名字是（${shapeName(n,type)}）`;
-  current.answers = {A:ansA,B:ansB,C:ansC,D:ansD};
-
-  // A：固定兩張
-  shuffle(["它是柱體","它是錐"]).forEach(t => els.groupA.appendChild(makeOption("A", t)));
-
-  // B：固定兩張
-  shuffle(["它的側面是三角形","它的側面是四邊形"]).forEach(t => els.groupB.appendChild(makeOption("B", t)));
-
-  // C：1 correct + 2 干擾（從其他圖形抽）
-  const correctFace = facesCount(n,type);
-  const facesPool = [];
-  uniquePush(facesPool, correctFace);
-  while(facesPool.length < 3){
-    const n2 = sampleOne(POLY_N);
-    const t2 = sampleOne(TYPES);
-    const f2 = facesCount(n2,t2);
-    if(f2 !== correctFace) uniquePush(facesPool, f2);
-  }
-  shuffle(facesPool.map(v => `它總共有（${v}）個面`))
-    .forEach(t => els.groupC.appendChild(makeOption("C", t)));
-
-  // D：1 correct + 3 干擾（六個名字之中抽）
-  const namesPool = [];
-  uniquePush(namesPool, shapeName(n,type));
-  while(namesPool.length < 4){
-    const n2 = sampleOne(POLY_N);
-    const t2 = sampleOne(TYPES);
-    const nm = shapeName(n2,t2);
-    if(nm !== shapeName(n,type)) uniquePush(namesPool, nm);
-  }
-  shuffle(namesPool.map(v => `它的名字是（${v}）`))
-    .forEach(t => els.groupD.appendChild(makeOption("D", t)));
-}
-
-function loadShapeImage(n, type){
-  els.img.src = imgPath(n, type);
-  els.img.onerror = () => {
-    els.status.className = "status bad";
-    els.status.textContent = "圖片載入失敗：請確認 images/ 內有 pyramid3.svg、prism4.svg 等檔案，檔名完全一致（大小寫要同）。";
+  const ans = {
+    A: solidTypeLabel(type),
+    B: lateralFaceLabel(type),
+    C: `它總共有（${facesCount(n,type)}）個面`,
+    D: `它的名字是（${shapeName(n,type)}）`
   };
+  current.answers = ans;
+
+  shuffle(["它是柱體","它是錐"]).forEach(t=>els.A.appendChild(makeOption("A",t)));
+  shuffle(["它的側面是三角形","它的側面是四邊形"]).forEach(t=>els.B.appendChild(makeOption("B",t)));
+
+  const cPool = shuffle([facesCount(n,type), 5, 6, 7]).slice(0,3);
+  cPool.map(v=>`它總共有（${v}）個面`).forEach(t=>els.C.appendChild(makeOption("C",t)));
+
+  const names = [];
+  while(names.length<4){
+    const nm = shapeName(sample(POLY_N), sample(TYPES));
+    if(!names.includes(nm)) names.push(nm);
+  }
+  shuffle(names.map(v=>`它的名字是（${v}）`))
+    .forEach(t=>els.D.appendChild(makeOption("D",t)));
 }
 
-/* =========================
-   出題：隨機三～五角錐／柱
-========================= */
 function newQuestion(){
-  const n = sampleOne(POLY_N);
-  const type = sampleOne(TYPES);
-  current = {n, type, answers:null};
-
-  total += 1;
-  updateScore();
-
-  loadShapeImage(n, type);
+  const n = sample(POLY_N);
+  const type = sample(TYPES);
+  current = {n,type};
+  total++;
+  els.score.textContent = `已通關：${cleared} ｜ 總題數：${total}`;
+  els.img.src = imgPath(n,type);
   buildCards();
 }
 
 function submit(){
-  if(!current?.answers) return;
-
   const wrong = [];
-  if(selected.A !== current.answers.A) wrong.push("A（柱體／錐）");
-  if(selected.B !== current.answers.B) wrong.push("B（側面形狀）");
-  if(selected.C !== current.answers.C) wrong.push("C（總面數）");
-  if(selected.D !== current.answers.D) wrong.push("D（名字）");
-
-  if(wrong.length === 0){
-    cleared += 1;
-    updateScore();
+  for(const k in current.answers){
+    if(selected[k] !== current.answers[k]) wrong.push(k);
+  }
+  if(wrong.length===0){
+    cleared++;
+    els.score.textContent = `已通關：${cleared} ｜ 總題數：${total}`;
     els.status.className = "status good";
-    els.status.textContent = "🎉 通關成功！四類都配對正確。";
-    // 通關後先揭示名稱（唔會提前泄題）
-    els.meta.textContent = `本關圖形：${shapeName(current.n, current.type)}`;
+    els.status.textContent = "🎉 通關成功！";
+    els.meta.textContent = `本關圖形：${shapeName(current.n,current.type)}`;
   }else{
     els.status.className = "status bad";
-    els.status.textContent = `未通關：以下類別未配對正確 → ${wrong.join("、")}。請再試。`;
+    els.status.textContent = "未通關，請再試。";
   }
 }
 
-/* =========================
-   事件
-========================= */
-els.submit.addEventListener("click", submit);
-els.newBtn.addEventListener("click", newQuestion);
-els.resetBtn.addEventListener("click", resetSelection);
+/* ========= 事件 ========= */
+els.submit.onclick = submit;
+els.newBtn.onclick = newQuestion;
+els.resetBtn.onclick = resetSelection;
 
-// start
+/* ========= 開始 ========= */
 newQuestion();
 </script>
 </body>
