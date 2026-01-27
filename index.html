@@ -3,25 +3,24 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>立體圖形配對通關</title>
+  <title>立體圖形配對通關（Three.js 生成）</title>
   <style>
     :root{
-      --bg:#f6f7fb; --card:#fff; --ink:#1b1f2a; --muted:#6b7280;
+      --bg:#f6f7fb; --card:#fff; --ink:#111827; --muted:#6b7280;
       --line:#e5e7eb; --good:#16a34a; --bad:#dc2626; --accent:#2563eb;
     }
-    body{ margin:0; font-family: "Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif; background:var(--bg); color:var(--ink); }
+    body{ margin:0; font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif; background:var(--bg); color:var(--ink); }
     header{ padding:16px 18px; background:#fff; border-bottom:1px solid var(--line); }
     header h1{ margin:0; font-size:18px; }
     header p{ margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.4; }
 
     .wrap{ max-width:1100px; margin:0 auto; padding:16px 18px 28px; }
-    .top{
-      display:grid; grid-template-columns: 1.1fr 1.9fr; gap:14px; align-items:start;
-    }
+    .top{ display:grid; grid-template-columns: 1.15fr 1.85fr; gap:14px; align-items:start; }
     .panel{ background:var(--card); border:1px solid var(--line); border-radius:14px; box-shadow:0 8px 24px rgba(0,0,0,.06); }
     .panel .hd{ padding:12px 14px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:10px; }
     .panel .hd .meta{ font-size:13px; color:var(--muted); }
     .panel .bd{ padding:12px 14px; }
+
     #canvasWrap{ height:360px; }
     canvas{ display:block; width:100%; height:100%; border-radius:12px; }
 
@@ -40,9 +39,7 @@
     .status.good{ border-color:rgba(22,163,74,.35); background:rgba(22,163,74,.07); color:#0f5f2b; }
     .status.bad{ border-color:rgba(220,38,38,.35); background:rgba(220,38,38,.07); color:#7f1d1d; }
 
-    .grid{
-      display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px;
-    }
+    .grid{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; }
     .group{ padding:12px 12px 14px; }
     .group h3{ margin:0 0 8px; font-size:14px; color:#111827; }
     .opts{ display:flex; flex-wrap:wrap; gap:8px; }
@@ -51,7 +48,6 @@
       font-size:14px; cursor:pointer; user-select:none;
     }
     .opt.selected{ outline:2px solid rgba(37,99,235,.35); border-color:rgba(37,99,235,.55); }
-    .opt.locked{ opacity:.75; cursor:not-allowed; }
 
     .footerRow{
       display:flex; gap:10px; align-items:center; justify-content:space-between;
@@ -59,6 +55,7 @@
     }
     .score{ font-size:13px; color:var(--muted); }
     .hint{ font-size:13px; color:var(--muted); }
+
     @media (max-width:900px){
       .top{ grid-template-columns: 1fr; }
       #canvasWrap{ height:320px; }
@@ -67,8 +64,8 @@
 </head>
 <body>
 <header>
-  <h1>立體圖形配對通關（角錐／角柱）</h1>
-  <p>每關先睇 3D 圖形，然後喺四類字卡各揀一張。四類全部正確先算通關。</p>
+  <h1>立體圖形配對通關（Three.js 生成 3D）</h1>
+  <p>每關先睇 3D 立體圖形，再喺四類字卡各揀一張。四類全部正確先算通關。</p>
 </header>
 
 <div class="wrap">
@@ -86,10 +83,10 @@
         </div>
       </div>
       <div class="bd">
-        <div id="canvasWrap" class="panel" style="border:none; box-shadow:none;">
+        <div id="canvasWrap">
           <canvas id="c"></canvas>
         </div>
-        <div id="status" class="status">提示：用滑鼠拖拉可旋轉，滾輪可縮放（手機可單指拖拉）。</div>
+        <div id="status" class="status">提示：拖拉旋轉，滾輪縮放（手機單指拖拉）。</div>
       </div>
     </div>
 
@@ -124,7 +121,7 @@
       <div class="footerRow">
         <div class="score" id="score">已通關：0　｜　總題數：0</div>
         <div style="display:flex; gap:8px; align-items:center;">
-          <span class="hint" id="pickHint">尚未提交</span>
+          <span class="hint" id="pickHint">四類都要揀先可提交</span>
           <button class="primary" id="btnSubmit" disabled>提交</button>
         </div>
       </div>
@@ -138,31 +135,24 @@
 
 <script>
 /** =========================
- *  資料與規則
+ *  立體資料 + 規則
  *  ========================= */
 const POLY_N = [3,4,5];
 const TYPES = ["pyramid","prism"]; // 角錐 / 角柱
 
 function shapeName(n, type){
-  // 三至五角錐 / 三至五角柱
   const map = {3:"三",4:"四",5:"五"};
   return map[n] + (type==="pyramid" ? "角錐" : "角柱");
 }
-
-function isPyramid(type){ return type==="pyramid"; }
 function facesCount(n, type){
-  return isPyramid(type) ? (n + 1) : (n + 2);
+  return (type==="pyramid") ? (n + 1) : (n + 2);
 }
 function lateralFaceLabel(type){
-  return isPyramid(type) ? "它的側面是三角形" : "它的側面是四邊形";
+  return (type==="pyramid") ? "它的側面是三角形" : "它的側面是四邊形";
 }
 function solidTypeLabel(type){
-  return isPyramid(type) ? "它是錐" : "它是柱體";
+  return (type==="pyramid") ? "它是錐" : "它是柱體";
 }
-
-/** =========================
- *  小工具
- *  ========================= */
 function shuffle(arr){
   const a = arr.slice();
   for(let i=a.length-1;i>0;i--){
@@ -179,13 +169,8 @@ function uniquePush(arr, item){
 }
 
 /** =========================
- *  遊戲狀態
+ *  DOM
  *  ========================= */
-let current = null; // {n, type}
-let selected = {A:null,B:null,C:null,D:null};
-let cleared = 0;
-let total = 0;
-
 const els = {
   meta: document.getElementById("shapeMeta"),
   status: document.getElementById("status"),
@@ -201,11 +186,11 @@ const els = {
 };
 
 /** =========================
- *  3D 場景
+ *  Three.js：生成角錐/角柱（✅重點：即時生成）
  *  ========================= */
 const canvas = document.getElementById("c");
-const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
@@ -215,45 +200,52 @@ const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.06;
 
+// lights
 scene.add(new THREE.AmbientLight(0xffffff, 0.85));
 const dir = new THREE.DirectionalLight(0xffffff, 0.9);
 dir.position.set(4,6,3);
 scene.add(dir);
 
-// 地台
+// ground
 const ground = new THREE.Mesh(
-  new THREE.CircleGeometry(2.2, 64),
+  new THREE.CircleGeometry(2.25, 64),
   new THREE.MeshStandardMaterial({color:0xffffff, roughness:0.95, metalness:0.0})
 );
 ground.rotation.x = -Math.PI/2;
-ground.position.y = -0.9;
+ground.position.y = -0.95;
 scene.add(ground);
 
-// 目前模型
-let mesh = null;
+// current mesh
+let solidMesh = null;
 
-function makePrism(n){
-  // 用 CylinderGeometry 模擬 n 角柱
-  const geom = new THREE.CylinderGeometry(1.0, 1.0, 1.8, n, 1, false);
-  const mat  = new THREE.MeshStandardMaterial({color:0xffffff, roughness:0.35, metalness:0.1});
-  const m = new THREE.Mesh(geom, mat);
-  return m;
-}
+function createSolid(n, type){
+  const material = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    roughness: 0.35,
+    metalness: 0.08
+  });
 
-function makePyramid(n){
-  // 用 ConeGeometry 模擬 n 角錐（底為 n 邊形）
+  if(type === "prism"){
+    // n角柱：CylinderGeometry（頂底同半徑）= n 邊形柱
+    const geom = new THREE.CylinderGeometry(1.0, 1.0, 1.8, n, 1, false);
+    const mesh = new THREE.Mesh(geom, material);
+    mesh.position.y = 0.1;
+    return mesh;
+  }
+
+  // n角錐：ConeGeometry 底部為 n 邊形
   const geom = new THREE.ConeGeometry(1.1, 2.1, n, 1, false);
-  const mat  = new THREE.MeshStandardMaterial({color:0xffffff, roughness:0.35, metalness:0.1});
-  const m = new THREE.Mesh(geom, mat);
-  return m;
+  const mesh = new THREE.Mesh(geom, material);
+  mesh.position.y = 0.05;
+  return mesh;
 }
 
-function setShape3D(n, type){
-  if(mesh) scene.remove(mesh);
-  mesh = (type==="pyramid") ? makePyramid(n) : makePrism(n);
-  mesh.position.y = 0.1;
-  scene.add(mesh);
-  controls.target.set(0,0.1,0);
+function setSolid(n, type){
+  if(solidMesh) scene.remove(solidMesh);
+  solidMesh = createSolid(n, type);
+  scene.add(solidMesh);
+
+  controls.target.set(0, 0.1, 0);
   controls.update();
 }
 
@@ -276,28 +268,27 @@ resize();
 animate();
 
 /** =========================
- *  UI：建立字卡
+ *  遊戲狀態 + 出題
  *  ========================= */
+let current = null; // {n, type, answers}
+let selected = {A:null,B:null,C:null,D:null};
+let cleared = 0;
+let total = 0;
+
+function resetSelection(){
+  selected = {A:null,B:null,C:null,D:null};
+  document.querySelectorAll(".opt").forEach(o => o.classList.remove("selected"));
+  els.submit.disabled = true;
+  els.pickHint.textContent = "四類都要揀先可提交";
+  els.status.className = "status";
+  els.status.textContent = "提示：拖拉旋轉，滾輪縮放（手機單指拖拉）。";
+}
+
 function clearGroups(){
   els.groupA.innerHTML = "";
   els.groupB.innerHTML = "";
   els.groupC.innerHTML = "";
   els.groupD.innerHTML = "";
-}
-
-function makeOptionButton(groupKey, text){
-  const b = document.createElement("div");
-  b.className = "opt";
-  b.textContent = text;
-  b.onclick = () => {
-    // 如果已通關鎖住可自行加
-    selected[groupKey] = text;
-    // 更新該組選中狀態
-    const groupEl = (groupKey==="A"?els.groupA:groupKey==="B"?els.groupB:groupKey==="C"?els.groupC:els.groupD);
-    [...groupEl.children].forEach(ch => ch.classList.toggle("selected", ch.textContent===text));
-    updateSubmitState();
-  };
-  return b;
 }
 
 function updateSubmitState(){
@@ -306,49 +297,54 @@ function updateSubmitState(){
   els.pickHint.textContent = ok ? "已選四類，可以提交" : "四類都要揀先可提交";
 }
 
-function resetSelection(){
-  selected = {A:null,B:null,C:null,D:null};
-  document.querySelectorAll(".opt").forEach(o => o.classList.remove("selected"));
-  updateSubmitState();
-  els.status.className = "status";
-  els.status.textContent = "提示：用滑鼠拖拉可旋轉，滾輪可縮放（手機可單指拖拉）。";
+function makeOption(groupKey, text){
+  const b = document.createElement("div");
+  b.className = "opt";
+  b.textContent = text;
+  b.onclick = () => {
+    selected[groupKey] = text;
+
+    // toggle selected within group
+    const groupEl = groupKey==="A"?els.groupA:groupKey==="B"?els.groupB:groupKey==="C"?els.groupC:els.groupD;
+    [...groupEl.children].forEach(ch => ch.classList.toggle("selected", ch.textContent===text));
+
+    updateSubmitState();
+  };
+  return b;
 }
 
-function buildCardsForCurrent(){
+function buildCards(){
   const {n, type} = current;
   clearGroups();
   resetSelection();
 
-  // 正確答案
+  // correct answers
   const ansA = solidTypeLabel(type);
   const ansB = lateralFaceLabel(type);
   const ansC = `它總共有（${facesCount(n,type)}）個面`;
   const ansD = `它的名字是（${shapeName(n,type)}）`;
+  current.answers = {A:ansA,B:ansB,C:ansC,D:ansD};
 
-  // A 類（固定兩張）
-  const optsA = shuffle(["它是柱體","它是錐"]);
-  optsA.forEach(t => els.groupA.appendChild(makeOptionButton("A", t)));
+  // A: fixed 2
+  shuffle(["它是柱體","它是錐"]).forEach(t => els.groupA.appendChild(makeOption("A", t)));
 
-  // B 類（固定兩張）
-  const optsB = shuffle(["它的側面是三角形","它的側面是四邊形"]);
-  optsB.forEach(t => els.groupB.appendChild(makeOptionButton("B", t)));
+  // B: fixed 2
+  shuffle(["它的側面是三角形","它的側面是四邊形"]).forEach(t => els.groupB.appendChild(makeOption("B", t)));
 
-  // C 類（面數：1 正確 + 2 干擾）
+  // C: 1 correct + 2 distractors (from other solids)
   const correctFace = facesCount(n,type);
   const facesPool = [];
   uniquePush(facesPool, correctFace);
-
-  // 干擾：從其他圖形抽面數，避免太離譜亦避免重覆
   while(facesPool.length < 3){
     const n2 = sampleOne(POLY_N);
     const t2 = sampleOne(TYPES);
-    const f2 = facesCount(n2, t2);
+    const f2 = facesCount(n2,t2);
     if(f2 !== correctFace) uniquePush(facesPool, f2);
   }
-  const optsC = shuffle(facesPool.map(v => `它總共有（${v}）個面`));
-  optsC.forEach(t => els.groupC.appendChild(makeOptionButton("C", t)));
+  shuffle(facesPool.map(v => `它總共有（${v}）個面`))
+    .forEach(t => els.groupC.appendChild(makeOption("C", t)));
 
-  // D 類（名字：1 正確 + 3 干擾）
+  // D: 1 correct + 3 distractors
   const namesPool = [];
   uniquePush(namesPool, shapeName(n,type));
   while(namesPool.length < 4){
@@ -357,19 +353,13 @@ function buildCardsForCurrent(){
     const nm = shapeName(n2,t2);
     if(nm !== shapeName(n,type)) uniquePush(namesPool, nm);
   }
-  const optsD = shuffle(namesPool.map(v => `它的名字是（${v}）`));
-  optsD.forEach(t => els.groupD.appendChild(makeOptionButton("D", t)));
+  shuffle(namesPool.map(v => `它的名字是（${v}）`))
+    .forEach(t => els.groupD.appendChild(makeOption("D", t)));
 
-  // 存起正確答案方便核對
-  current.answers = {A:ansA,B:ansB,C:ansC,D:ansD};
-
-  // Meta
+  // top meta
   els.meta.textContent = `本關圖形：${shapeName(n,type)}（請配對 4 類字卡）`;
 }
 
-/** =========================
- *  出題 / 提交判斷
- *  ========================= */
 function newQuestion(){
   const n = sampleOne(POLY_N);
   const type = sampleOne(TYPES);
@@ -378,9 +368,13 @@ function newQuestion(){
   total += 1;
   els.score.textContent = `已通關：${cleared}　｜　總題數：${total}`;
 
-  setShape3D(n, type);
-  buildCardsForCurrent();
+  // ✅ 在遊戲平台中顯示：Three.js 即時生成 + 顯示
+  setSolid(n, type);
+
+  // build cards
+  buildCards();
 }
+
 function submit(){
   if(!current?.answers) return;
 
@@ -401,11 +395,12 @@ function submit(){
   }
 }
 
+// events
 els.submit.addEventListener("click", submit);
 els.newBtn.addEventListener("click", newQuestion);
 els.resetBtn.addEventListener("click", resetSelection);
 
-// 進入第一題
+// start
 newQuestion();
 </script>
 </body>
