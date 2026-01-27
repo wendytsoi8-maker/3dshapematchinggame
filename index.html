@@ -3,19 +3,24 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>立體圖形配對通關（遊戲版）</title>
+  <title>立體圖形配對大挑戰</title>
 
   <style>
     :root{
-      --ink:#0f172a;
-      --muted:#475569;
-      --white:#fff;
-      --shadow: 0 18px 40px rgba(2,6,23,.18);
-      --cardShadow: 0 12px 28px rgba(2,6,23,.14);
-      --line: rgba(15,23,42,.10);
+      --ink:#071020;
+      --muted:#334155;
+      --line: rgba(15,23,42,.12);
+      --glass: rgba(255,255,255,.78);
+      --glass2: rgba(255,255,255,.62);
+      --shadow: 0 18px 45px rgba(2,6,23,.20);
+      --cardShadow: 0 14px 30px rgba(2,6,23,.16);
       --blue:#2563eb;
-      --good:#16a34a;
-      --bad:#dc2626;
+      --purple:#7c3aed;
+      --pink:#ec4899;
+      --green:#22c55e;
+      --amber:#f59e0b;
+      --red:#ef4444;
+      --cyan:#06b6d4;
     }
 
     *{ box-sizing:border-box; }
@@ -23,39 +28,56 @@
       margin:0;
       font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
       color:var(--ink);
-      background:
-        radial-gradient(1000px 500px at 10% 10%, rgba(59,130,246,.25), transparent 60%),
-        radial-gradient(900px 520px at 90% 20%, rgba(34,197,94,.22), transparent 55%),
-        radial-gradient(900px 520px at 40% 90%, rgba(245,158,11,.20), transparent 55%),
-        linear-gradient(180deg, #f8fafc, #eef2ff);
       min-height:100vh;
+      overflow-x:hidden;
+      background:
+        radial-gradient(900px 520px at 8% 12%, rgba(59,130,246,.30), transparent 58%),
+        radial-gradient(900px 520px at 92% 16%, rgba(236,72,153,.24), transparent 55%),
+        radial-gradient(900px 520px at 35% 92%, rgba(34,197,94,.22), transparent 55%),
+        radial-gradient(900px 520px at 70% 70%, rgba(245,158,11,.20), transparent 55%),
+        linear-gradient(180deg, #f8fafc, #eef2ff);
+    }
+
+    /* floating blobs */
+    .blob{
+      position:fixed; inset:auto;
+      width:320px; height:320px;
+      border-radius:999px;
+      filter: blur(35px);
+      opacity:.55;
+      z-index:-1;
+      animation: float 9s ease-in-out infinite;
+    }
+    .b1{ left:-110px; top:90px; background: rgba(59,130,246,.55); }
+    .b2{ right:-140px; top:140px; background: rgba(236,72,153,.50); animation-duration: 11s; }
+    .b3{ left:25%; bottom:-160px; background: rgba(34,197,94,.45); animation-duration: 10.5s; }
+    @keyframes float{
+      0%,100%{ transform: translate(0,0) scale(1); }
+      50%{ transform: translate(20px,-18px) scale(1.05); }
     }
 
     header{
-      padding:18px 18px 14px;
-      max-width:1180px;
+      max-width:1200px;
       margin:0 auto;
+      padding:16px 18px 10px;
     }
-
-    .titleRow{
+    .topbar{
       display:flex;
-      flex-wrap:wrap;
-      align-items:flex-end;
       justify-content:space-between;
-      gap:10px;
+      align-items:flex-end;
+      gap:12px;
+      flex-wrap:wrap;
     }
-
     h1{
       margin:0;
-      font-size:20px;
+      font-size:22px;
       letter-spacing:.2px;
     }
-
     .sub{
       margin:8px 0 0;
       color:var(--muted);
       font-size:13px;
-      line-height:1.4;
+      line-height:1.45;
     }
 
     .hud{
@@ -65,77 +87,93 @@
       flex-wrap:wrap;
       justify-content:flex-end;
     }
-
     .pill{
-      background:rgba(255,255,255,.75);
-      border:1px solid var(--line);
-      backdrop-filter: blur(8px);
-      border-radius:999px;
-      padding:8px 12px;
-      box-shadow: 0 10px 22px rgba(2,6,23,.10);
-      font-size:13px;
-      color:var(--muted);
+      background: var(--glass);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+      border-radius: 999px;
+      padding: 8px 12px;
+      box-shadow: 0 12px 24px rgba(2,6,23,.12);
+      font-size: 13px;
+      color: var(--muted);
       display:flex;
       gap:10px;
       align-items:center;
+      white-space:nowrap;
     }
+    .pill strong{ color:var(--ink); }
 
     .wrap{
-      max-width:1180px;
+      max-width:1200px;
       margin:0 auto;
       padding:0 18px 26px;
     }
-
     .layout{
       display:grid;
-      grid-template-columns: 1.05fr 1.95fr;
+      grid-template-columns: 1.08fr 1.92fr;
       gap:14px;
       align-items:start;
     }
 
     .panel{
-      background:rgba(255,255,255,.8);
-      border:1px solid var(--line);
-      backdrop-filter: blur(8px);
-      border-radius:18px;
+      background: var(--glass);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
       box-shadow: var(--shadow);
       overflow:hidden;
+      position:relative;
     }
-
     .panelHd{
-      padding:12px 14px;
-      border-bottom:1px solid var(--line);
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
       display:flex;
       justify-content:space-between;
       align-items:center;
       gap:10px;
     }
-    .panelHd .meta{
+    .panelHd .title{
+      font-weight:900;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .badge{
+      font-size:12px;
+      padding: 4px 8px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: var(--glass2);
+      color: var(--muted);
+    }
+    .meta{
+      margin-top:4px;
       font-size:13px;
       color:var(--muted);
-      margin-top:4px;
     }
-
     .panelBd{ padding:14px; }
 
-    .btnRow{ display:flex; gap:8px; flex-wrap:wrap; }
+    .btnRow{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
     button{
       border:1px solid var(--line);
-      background:rgba(255,255,255,.85);
-      color:var(--ink);
-      padding:10px 12px;
-      border-radius:14px;
+      background: rgba(255,255,255,.88);
+      color: var(--ink);
+      padding: 10px 12px;
+      border-radius: 14px;
       font-size:14px;
       cursor:pointer;
-      transition: transform .08s ease, box-shadow .12s ease, background .12s ease;
-      box-shadow: 0 10px 20px rgba(2,6,23,.08);
+      transition: transform .08s ease, box-shadow .12s ease, filter .12s ease;
+      box-shadow: 0 12px 20px rgba(2,6,23,.10);
     }
-    button:hover{ transform: translateY(-1px); }
-    button:active{ transform: translateY(0px) scale(.99); }
+    button:hover{ transform: translateY(-1px); filter:saturate(1.06); }
+    button:active{ transform: translateY(0) scale(.99); }
     button.primary{
-      background: linear-gradient(135deg, #2563eb, #7c3aed);
-      color:#fff;
+      background: linear-gradient(135deg, var(--blue), var(--purple), var(--pink));
+      color: #fff;
       border-color: transparent;
+    }
+    button.ghost{
+      background: rgba(255,255,255,.68);
     }
     button:disabled{
       opacity:.55;
@@ -144,11 +182,11 @@
       box-shadow:none;
     }
 
-    /* 左圖區 */
+    /* Left image + FX */
     .imgWrap{
-      height:360px;
-      border-radius:16px;
-      border:1px solid var(--line);
+      height: 360px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
       background: linear-gradient(180deg, #ffffff, #f8fafc);
       display:flex;
       align-items:center;
@@ -156,15 +194,18 @@
       position:relative;
       overflow:hidden;
     }
-    .imgWrap::after{
-      content:"";
-      position:absolute; inset:-40px;
+    .shine{
+      position:absolute; inset:-120px;
       background:
-        radial-gradient(260px 220px at 30% 30%, rgba(59,130,246,.18), transparent 60%),
-        radial-gradient(260px 220px at 70% 40%, rgba(34,197,94,.16), transparent 60%),
-        radial-gradient(260px 220px at 40% 75%, rgba(245,158,11,.14), transparent 60%);
+        radial-gradient(300px 240px at 28% 28%, rgba(59,130,246,.22), transparent 60%),
+        radial-gradient(300px 240px at 72% 38%, rgba(236,72,153,.18), transparent 60%),
+        radial-gradient(300px 240px at 45% 78%, rgba(245,158,11,.16), transparent 60%);
       pointer-events:none;
-      filter: blur(0px);
+      animation: glow 3.4s ease-in-out infinite;
+    }
+    @keyframes glow{
+      0%,100%{ transform: scale(1) rotate(0deg); opacity:.92; }
+      50%{ transform: scale(1.04) rotate(3deg); opacity:1; }
     }
     #shapeImg{
       width:100%;
@@ -173,41 +214,68 @@
       display:block;
       position:relative;
       z-index:1;
+      transform-origin:center;
+      animation: popIn 380ms ease-out;
+    }
+    @keyframes popIn{
+      from{ transform: scale(.92); opacity:.3; }
+      to{ transform: scale(1); opacity:1; }
     }
 
     .status{
       margin-top:10px;
       padding:10px 12px;
-      border-radius:14px;
-      border:1px dashed rgba(15,23,42,.18);
-      background: rgba(255,255,255,.75);
+      border-radius: 16px;
+      border:1px dashed rgba(15,23,42,.16);
+      background: rgba(255,255,255,.72);
       color: var(--muted);
       font-size:14px;
       line-height:1.45;
+      display:flex;
+      align-items:center;
+      gap:10px;
     }
     .status.good{
-      border-color: rgba(22,163,74,.35);
-      background: rgba(22,163,74,.10);
-      color:#0f5f2b;
+      border-color: rgba(34,197,94,.35);
+      background: rgba(34,197,94,.12);
+      color: #0f5f2b;
     }
     .status.bad{
-      border-color: rgba(220,38,38,.35);
-      background: rgba(220,38,38,.10);
-      color:#7f1d1d;
+      border-color: rgba(239,68,68,.35);
+      background: rgba(239,68,68,.10);
+      color: #7f1d1d;
     }
+    .status .dot{
+      width:10px; height:10px; border-radius:999px;
+      background: rgba(100,116,139,.55);
+      flex: 0 0 auto;
+    }
+    .status.good .dot{ background: rgba(34,197,94,.9); }
+    .status.bad  .dot{ background: rgba(239,68,68,.9); }
 
-    /* 右：卡片區 */
+    /* Right groups */
     .grid{
       display:grid;
       grid-template-columns: repeat(2, minmax(0,1fr));
       gap:12px;
     }
     .group{
-      border-radius:16px;
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.78);
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.80);
       box-shadow: var(--cardShadow);
       padding:12px;
+      position:relative;
+      overflow:hidden;
+    }
+    .group::before{
+      content:"";
+      position:absolute; inset:-80px;
+      background:
+        radial-gradient(200px 160px at 25% 25%, rgba(59,130,246,.10), transparent 60%),
+        radial-gradient(200px 160px at 75% 35%, rgba(236,72,153,.08), transparent 60%),
+        radial-gradient(200px 160px at 45% 78%, rgba(34,197,94,.08), transparent 60%);
+      pointer-events:none;
     }
     .group h3{
       margin:0 0 10px;
@@ -216,160 +284,226 @@
       justify-content:space-between;
       align-items:center;
       gap:8px;
+      position:relative;
+      z-index:1;
     }
     .tag{
       font-size:12px;
-      padding:4px 8px;
+      padding: 4px 8px;
       border-radius:999px;
       border:1px solid var(--line);
+      background: rgba(255,255,255,.72);
       color: var(--muted);
-      background: rgba(255,255,255,.8);
+      position:relative;
+      z-index:1;
     }
 
     .opts{
       display:flex;
       flex-wrap:wrap;
       gap:8px;
+      position:relative;
+      z-index:1;
     }
     .opt{
-      padding:10px 10px;
-      border-radius:14px;
+      padding: 10px 10px;
+      border-radius: 14px;
       border:1px solid var(--line);
-      background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(248,250,252,.95));
+      background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,250,252,.96));
       cursor:pointer;
       user-select:none;
       transition: transform .08s ease, box-shadow .12s ease, border-color .12s ease;
-      box-shadow: 0 10px 20px rgba(2,6,23,.07);
+      box-shadow: 0 12px 18px rgba(2,6,23,.10);
       font-size:14px;
     }
     .opt:hover{ transform: translateY(-1px); }
     .opt.selected{
-      border-color: rgba(37,99,235,.55);
-      outline: 2px solid rgba(37,99,235,.25);
-      background: linear-gradient(135deg, rgba(59,130,246,.16), rgba(124,58,237,.10));
+      border-color: rgba(37,99,235,.62);
+      outline: 2px solid rgba(37,99,235,.23);
+      background: linear-gradient(135deg, rgba(59,130,246,.18), rgba(124,58,237,.12), rgba(236,72,153,.10));
     }
 
     .footer{
-      padding:12px 14px;
-      border-top:1px solid var(--line);
+      padding: 12px 14px;
+      border-top: 1px solid var(--line);
       display:flex;
       justify-content:space-between;
       align-items:center;
       gap:10px;
-      color:var(--muted);
-      font-size:13px;
+      color: var(--muted);
+      font-size: 13px;
+      flex-wrap:wrap;
     }
 
-    /* 簡易彩色星星（通關效果） */
+    /* Countdown bar */
+    .bar{
+      height:10px;
+      width: 190px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.65);
+      overflow:hidden;
+      box-shadow: 0 10px 18px rgba(2,6,23,.10);
+    }
+    .fill{
+      height:100%;
+      width:100%;
+      background: linear-gradient(90deg, var(--green), var(--amber), var(--red));
+      transform-origin:left;
+      transform: scaleX(1);
+      transition: transform 200ms linear;
+    }
+
+    /* Confetti */
     .fx{
-      position:absolute;
-      inset:0;
+      position:absolute; inset:0;
       pointer-events:none;
       overflow:hidden;
       z-index:2;
     }
-    .star{
+    .conf{
       position:absolute;
-      font-size:18px;
-      animation: pop 900ms ease-out forwards;
-      filter: drop-shadow(0 6px 10px rgba(0,0,0,.15));
+      width:10px; height:14px;
+      border-radius: 3px;
+      opacity:.95;
+      animation: fall 1100ms ease-out forwards;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,.12));
     }
-    @keyframes pop{
-      0%{ transform: translateY(20px) scale(.6); opacity:0; }
-      25%{ opacity:1; }
-      100%{ transform: translateY(-70px) scale(1.1); opacity:0; }
+    @keyframes fall{
+      0%{ transform: translateY(-30px) rotate(0deg); opacity:0; }
+      15%{ opacity:1; }
+      100%{ transform: translateY(420px) rotate(260deg); opacity:0; }
+    }
+
+    /* Shake on wrong */
+    .shake{ animation: shake 320ms ease-in-out; }
+    @keyframes shake{
+      0%{ transform: translateX(0); }
+      25%{ transform: translateX(-6px); }
+      50%{ transform: translateX(6px); }
+      75%{ transform: translateX(-4px); }
+      100%{ transform: translateX(0); }
+    }
+
+    /* Little pulse */
+    .pulse{
+      animation: pulse 1s ease-in-out infinite;
+    }
+    @keyframes pulse{
+      0%,100%{ transform: scale(1); }
+      50%{ transform: scale(1.02); }
     }
 
     @media(max-width:980px){
       .layout{ grid-template-columns: 1fr; }
-      .imgWrap{ height:320px; }
+      .imgWrap{ height: 320px; }
+      .bar{ width: 160px; }
     }
   </style>
 </head>
 
 <body>
-<header>
-  <div class="titleRow">
-    <div>
-      <h1>立體圖形配對通關（遊戲版）</h1>
-      <div class="sub">觀察左邊圖形，右邊四類各選一張：A 角柱/角錐｜B 側面形狀｜C 面數｜D 名字。通關後自動下一題。</div>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+
+  <header>
+    <div class="topbar">
+      <div>
+        <h1>🎮 立體圖形配對大挑戰</h1>
+        <div class="sub">四類都要配對正確先通關：A 角柱/角錐｜B 側面形狀｜C 面數｜D 名字。通關自動下一題！</div>
+      </div>
+
+      <div class="hud">
+        <div class="pill">🔥 連勝 <strong id="streak">0</strong></div>
+        <div class="pill">✅ 通關 <strong id="cleared">0</strong></div>
+        <div class="pill">🎯 題目 <strong id="total">0</strong></div>
+
+        <div class="pill" title="倒數計時">
+          ⏳
+          <div class="bar"><div class="fill" id="fill"></div></div>
+          <strong id="sec">10</strong>s
+        </div>
+
+        <button class="ghost" id="btnSound" title="音效開關">🔊 音效：開</button>
+      </div>
     </div>
-    <div class="hud">
-      <div class="pill"><span>✅ 已通關：</span><strong id="cleared">0</strong></div>
-      <div class="pill"><span>🎮 題目：</span><strong id="total">0</strong></div>
+  </header>
+
+  <div class="wrap">
+    <div class="layout">
+
+      <!-- 左：圖片 -->
+      <div class="panel" id="leftPanel">
+        <div class="panelHd">
+          <div>
+            <div class="title">🧩 本題圖形 <span class="badge" id="meta">觀察左圖</span></div>
+            <div class="meta" id="meta2">配對右邊四類字卡。</div>
+          </div>
+          <div class="btnRow">
+            <button id="btnNew">跳過</button>
+            <button id="btnReset">重設</button>
+          </div>
+        </div>
+
+        <div class="panelBd">
+          <div class="imgWrap pulse">
+            <div class="shine"></div>
+            <img id="shapeImg" alt="立體圖形" />
+            <div class="fx" id="fx"></div>
+          </div>
+
+          <div class="status" id="status">
+            <span class="dot"></span>
+            <span>提示：四類都要揀先可以提交。</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右：配對 -->
+      <div class="panel" id="rightPanel">
+        <div class="panelHd">
+          <div class="title">🃏 選字卡配對</div>
+          <div class="btnRow">
+            <button class="primary" id="btnSubmit" disabled>提交 ✅</button>
+          </div>
+        </div>
+
+        <div class="panelBd">
+          <div class="grid">
+            <div class="group">
+              <h3>A 類 <span class="tag">角柱 / 角錐</span></h3>
+              <div class="opts" id="A"></div>
+            </div>
+
+            <div class="group">
+              <h3>B 類 <span class="tag">側面形狀</span></h3>
+              <div class="opts" id="B"></div>
+            </div>
+
+            <div class="group">
+              <h3>C 類 <span class="tag">總面數</span></h3>
+              <div class="opts" id="C"></div>
+            </div>
+
+            <div class="group">
+              <h3>D 類 <span class="tag">名字</span></h3>
+              <div class="opts" id="D"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div id="hint">四類都要揀先可提交</div>
+          <div>✅ 通關後自動下一題｜⏳ 時間到會自動跳題</div>
+        </div>
+      </div>
+
     </div>
   </div>
-</header>
-
-<div class="wrap">
-  <div class="layout">
-
-    <!-- 左：圖片 -->
-    <div class="panel">
-      <div class="panelHd">
-        <div>
-          <div style="font-weight:800;">本題圖形</div>
-          <div class="meta" id="meta">請配對右邊四類字卡。</div>
-        </div>
-        <div class="btnRow">
-          <button id="btnNew">下一題</button>
-          <button id="btnReset">重設選擇</button>
-        </div>
-      </div>
-
-      <div class="panelBd">
-        <div class="imgWrap">
-          <img id="shapeImg" alt="立體圖形" />
-          <div class="fx" id="fx"></div>
-        </div>
-        <div class="status" id="status">提示：四類都要揀先可以提交。</div>
-      </div>
-    </div>
-
-    <!-- 右：配對 -->
-    <div class="panel">
-      <div class="panelHd">
-        <div style="font-weight:800;">四類字卡配對</div>
-        <div class="btnRow">
-          <button class="primary" id="btnSubmit" disabled>提交</button>
-        </div>
-      </div>
-
-      <div class="panelBd">
-        <div class="grid">
-          <div class="group">
-            <h3>A 類 <span class="tag">角柱 / 角錐</span></h3>
-            <div class="opts" id="A"></div>
-          </div>
-
-          <div class="group">
-            <h3>B 類 <span class="tag">側面形狀</span></h3>
-            <div class="opts" id="B"></div>
-          </div>
-
-          <div class="group">
-            <h3>C 類 <span class="tag">總面數</span></h3>
-            <div class="opts" id="C"></div>
-          </div>
-
-          <div class="group">
-            <h3>D 類 <span class="tag">名字</span></h3>
-            <div class="opts" id="D"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="footer">
-        <div id="hint">四類都要揀先可提交</div>
-        <div>通關後 <strong>1 秒</strong> 自動下一題</div>
-      </div>
-    </div>
-
-  </div>
-</div>
 
 <script>
-/* ========= 題庫（固定 6 個） ========= */
+/* ========= 固定 6 個題庫 ========= */
 const SHAPES = [
   { n:3, t:"pyramid", name:"三角錐" },
   { n:4, t:"pyramid", name:"四角錐" },
@@ -386,6 +520,7 @@ function imgPath(n,t){ return `${t}${n}.svg`; } // 同一層
 const el = {
   img: document.getElementById("shapeImg"),
   meta: document.getElementById("meta"),
+  meta2: document.getElementById("meta2"),
   status: document.getElementById("status"),
   A: document.getElementById("A"),
   B: document.getElementById("B"),
@@ -397,15 +532,58 @@ const el = {
   hint: document.getElementById("hint"),
   cleared: document.getElementById("cleared"),
   total: document.getElementById("total"),
+  streak: document.getElementById("streak"),
   fx: document.getElementById("fx"),
+  leftPanel: document.getElementById("leftPanel"),
+  fill: document.getElementById("fill"),
+  sec: document.getElementById("sec"),
+  btnSound: document.getElementById("btnSound"),
 };
 
+/* ========= 音效（簡單 beep，無需外部檔） ========= */
+let soundOn = true;
+let audioCtx = null;
+
+function beep(freq=660, ms=90, type="sine", gain=0.06){
+  if(!soundOn) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type;
+    o.frequency.value = freq;
+    g.gain.value = gain;
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start();
+    setTimeout(()=>{ o.stop(); }, ms);
+  }catch(e){ /* ignore */ }
+}
+function sfxWin(){
+  beep(784, 90, "sine", .06);
+  setTimeout(()=>beep(988, 100, "sine", .06), 110);
+  setTimeout(()=>beep(1175, 120, "sine", .06), 240);
+}
+function sfxWrong(){
+  beep(220, 120, "square", .05);
+  setTimeout(()=>beep(180, 130, "square", .05), 150);
+}
+function sfxTick(){
+  beep(880, 50, "sine", .03);
+}
+
 /* ========= 狀態 ========= */
-let current = null; // {n,t,name, ans}
+let current = null;
 let pick = {A:null,B:null,C:null,D:null};
 let cleared = 0;
 let total = 0;
+let streak = 0;
+
 let autoTimer = null;
+
+/* Countdown */
+let timeMax = 10;
+let timeLeft = timeMax;
+let intervalId = null;
 
 /* ========= 工具 ========= */
 function shuffle(arr){
@@ -417,35 +595,46 @@ function shuffle(arr){
   return a;
 }
 function pickOne(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
 function setStatus(kind, text){
   el.status.className = "status" + (kind ? (" " + kind) : "");
-  el.status.textContent = text;
+  el.status.querySelector("span:last-child").textContent = text;
 }
 
-/* ========= UI：星星效果 ========= */
-function fireStars(){
-  const stars = ["⭐","✨","🌟","💫"];
-  const colors = ["#2563eb","#7c3aed","#22c55e","#f59e0b","#ef4444","#06b6d4"];
-  for(let i=0;i<12;i++){
-    const s = document.createElement("div");
-    s.className = "star";
-    s.textContent = pickOne(stars);
-    s.style.left = (10 + Math.random()*80) + "%";
-    s.style.top = (55 + Math.random()*25) + "%";
-    s.style.color = pickOne(colors);
-    s.style.fontSize = (16 + Math.random()*10) + "px";
-    el.fx.appendChild(s);
-    setTimeout(()=>s.remove(), 950);
+function clearAuto(){
+  if(autoTimer){ clearTimeout(autoTimer); autoTimer = null; }
+}
+
+/* ========= 特效 ========= */
+function confetti(){
+  const colors = ["#2563eb","#7c3aed","#ec4899","#22c55e","#f59e0b","#06b6d4","#ef4444"];
+  for(let i=0;i<26;i++){
+    const c = document.createElement("div");
+    c.className = "conf";
+    c.style.left = (5 + Math.random()*90) + "%";
+    c.style.top = (-20 - Math.random()*40) + "px";
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.transform = `rotate(${Math.random()*180}deg)`;
+    c.style.animationDuration = (900 + Math.random()*550) + "ms";
+    el.fx.appendChild(c);
+    setTimeout(()=>c.remove(), 1500);
   }
 }
 
-/* ========= 選項渲染 ========= */
+function shake(){
+  el.leftPanel.classList.remove("shake");
+  void el.leftPanel.offsetWidth;
+  el.leftPanel.classList.add("shake");
+}
+
+/* ========= 卡片 ========= */
 function resetPick(){
   pick = {A:null,B:null,C:null,D:null};
   document.querySelectorAll(".opt").forEach(o=>o.classList.remove("selected"));
   el.submit.disabled = true;
   el.hint.textContent = "四類都要揀先可提交";
-  el.meta.textContent = "請配對右邊四類字卡。";
+  el.meta.textContent = "觀察左圖";
+  el.meta2.textContent = "配對右邊四類字卡。";
   setStatus("", "提示：四類都要揀先可以提交。");
 }
 
@@ -456,10 +645,11 @@ function makeOpt(groupKey, text){
   d.onclick = ()=>{
     pick[groupKey] = text;
     const groupEl = el[groupKey];
-    [...groupEl.children].forEach(c => c.classList.toggle("selected", c === d));
+    [...groupEl.children].forEach(c=>c.classList.toggle("selected", c === d));
     const ok = pick.A && pick.B && pick.C && pick.D;
     el.submit.disabled = !ok;
-    el.hint.textContent = ok ? "已選四類，可以提交" : "四類都要揀先可提交";
+    el.hint.textContent = ok ? "已選四類，可以提交 ✅" : "四類都要揀先可提交";
+    if(ok) beep(660, 60, "sine", .03);
   };
   return d;
 }
@@ -470,7 +660,6 @@ function buildCards(){
 
   const {n,t,name} = current;
 
-  // 正確答案（字串一律固定，避免「D 類永遠對唔到」）
   current.ans = {
     A: (t==="prism") ? "角柱" : "角錐",
     B: (t==="prism") ? "側面是四邊形" : "側面是三角形",
@@ -478,13 +667,13 @@ function buildCards(){
     D: `名字是（${name}）`,
   };
 
-  // A：角柱/角錐（固定 2）
+  // A
   shuffle(["角柱","角錐"]).forEach(v=> el.A.appendChild(makeOpt("A", v)));
 
-  // B：側面形狀（固定 2）
+  // B
   shuffle(["側面是三角形","側面是四邊形"]).forEach(v=> el.B.appendChild(makeOpt("B", v)));
 
-  // C：正確 + 2 干擾（從其它形狀面數抽，保證包含正確）
+  // C: correct + 2 distractors (unique)
   const correctFaces = facesCount(n,t);
   const faceSet = new Set([correctFaces]);
   while(faceSet.size < 3){
@@ -494,32 +683,68 @@ function buildCards(){
   shuffle([...faceSet].map(v=>`總共有（${v}）個面`))
     .forEach(v=> el.C.appendChild(makeOpt("C", v)));
 
-  // D：✅ 修正重點：從 6 個固定名字抽，必含正確
+  // D: correct name + 3 from the remaining 5
   const namesAll = SHAPES.map(s=>s.name);
   const rest = namesAll.filter(x => x !== name);
   const dOpts = shuffle(rest).slice(0,3);
-  dOpts.push(name); // 一定包含正確
+  dOpts.push(name);
   shuffle(dOpts.map(v=>`名字是（${v}）`))
     .forEach(v=> el.D.appendChild(makeOpt("D", v)));
 }
 
-/* ========= 出題 ========= */
+/* ========= 圖片 ========= */
 function loadImage(n,t){
+  el.img.style.animation = "none";
+  void el.img.offsetWidth;
+  el.img.style.animation = "";
+
   el.img.src = imgPath(n,t);
   el.img.onerror = ()=>{
-    setStatus("bad", "圖片載入失敗：請確認 pyramid3.svg、prism4.svg 等檔案與 index.html 放在同一層，且已 commit。");
+    setStatus("bad", "圖片載入失敗：請確認 pyramid3.svg、prism4.svg 等檔案與 index.html 放同一層，並已 commit。");
   };
 }
 
-function newQuestion(){
-  if(autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+/* ========= 倒數計時 ========= */
+function stopTimer(){
+  if(intervalId){ clearInterval(intervalId); intervalId = null; }
+}
+function startTimer(){
+  stopTimer();
+  timeLeft = timeMax;
+  el.sec.textContent = String(timeLeft);
+  el.fill.style.transform = "scaleX(1)";
 
+  intervalId = setInterval(()=>{
+    timeLeft -= 1;
+    el.sec.textContent = String(timeLeft);
+    el.fill.style.transform = `scaleX(${Math.max(0, timeLeft/timeMax)})`;
+
+    if(timeLeft <= 3 && timeLeft > 0) sfxTick();
+
+    if(timeLeft <= 0){
+      stopTimer();
+      streak = 0;
+      el.streak.textContent = String(streak);
+      setStatus("bad", "⏰ 時間到！自動跳到下一題～");
+      shake();
+      sfxWrong();
+      clearAuto();
+      autoTimer = setTimeout(()=> newQuestion(), 900);
+    }
+  }, 1000);
+}
+
+/* ========= 出題 ========= */
+function newQuestion(){
+  clearAuto();
   current = JSON.parse(JSON.stringify(pickOne(SHAPES)));
+
   total += 1;
   el.total.textContent = String(total);
 
   loadImage(current.n, current.t);
   buildCards();
+  startTimer();
 }
 
 /* ========= 提交 ========= */
@@ -532,22 +757,47 @@ function submit(){
   if(pick.D !== ans.D) wrong.push("D");
 
   if(wrong.length === 0){
+    stopTimer();
     cleared += 1;
+    streak += 1;
     el.cleared.textContent = String(cleared);
-    setStatus("good", "🎉 通關成功！1 秒後自動下一題…");
-    el.meta.textContent = `本關圖形：${current.name}`;
-    fireStars();
+    el.streak.textContent = String(streak);
 
+    setStatus("good", `🎉 通關成功！連勝 +1（${streak}）｜1 秒後下一題…`);
+    el.meta.textContent = "通關！";
+    el.meta2.textContent = `本關圖形：${current.name}`;
+
+    confetti();
+    sfxWin();
+
+    clearAuto();
     autoTimer = setTimeout(()=> newQuestion(), 1000);
   }else{
-    setStatus("bad", `未通關：${wrong.join("、")} 類未配對正確，請再試。`);
+    streak = 0;
+    el.streak.textContent = String(streak);
+
+    setStatus("bad", `未通關：${wrong.join("、")} 類未配對正確，再試一次！`);
+    shake();
+    sfxWrong();
   }
 }
 
 /* ========= 事件 ========= */
 el.submit.addEventListener("click", submit);
-el.reset.addEventListener("click", resetPick);
-el.next.addEventListener("click", newQuestion);
+el.reset.addEventListener("click", () => { resetPick(); });
+el.next.addEventListener("click", () => {
+  stopTimer();
+  setStatus("", "已跳過，下一題～");
+  streak = 0;
+  el.streak.textContent = String(streak);
+  newQuestion();
+});
+
+el.btnSound.addEventListener("click", ()=>{
+  soundOn = !soundOn;
+  el.btnSound.textContent = soundOn ? "🔊 音效：開" : "🔇 音效：關";
+  if(soundOn) beep(740, 80, "sine", .05);
+});
 
 /* ========= 開始 ========= */
 newQuestion();
