@@ -21,8 +21,9 @@
     .panel .hd .meta{ font-size:13px; color:var(--muted); }
     .panel .bd{ padding:12px 14px; }
 
-    #canvasWrap{ height:360px; }
-    canvas{ display:block; width:100%; height:100%; border-radius:12px; }
+    /* ✅ 重要：canvas 容器要有實際高度 */
+    #canvasWrap{ height:360px; border-radius:12px; overflow:hidden; background:#eef2ff; }
+    canvas{ display:block; width:100%; height:100%; }
 
     .controls{ display:flex; gap:8px; flex-wrap:wrap; }
     button{
@@ -129,7 +130,7 @@
   </div>
 </div>
 
-<!-- Three.js -->
+<!-- Three.js（GitHub Pages OK） -->
 <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
 <script src="https://unpkg.com/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
 
@@ -186,64 +187,84 @@ const els = {
 };
 
 /** =========================
- *  Three.js：生成角錐/角柱（✅重點：即時生成）
+ *  Three.js：✅ 修正版（一定可見）
  *  ========================= */
 const canvas = document.getElementById("c");
-const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor(0xeef2ff, 1); // ✅ 背景色（唔透明，必定見到）
 
 const scene = new THREE.Scene();
+
 const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-camera.position.set(3.2, 2.2, 3.2);
+camera.position.set(3.4, 2.4, 3.4);
 
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-controls.dampingFactor = 0.06;
+controls.dampingFactor = 0.08;
 
-// lights
-scene.add(new THREE.AmbientLight(0xffffff, 0.85));
-const dir = new THREE.DirectionalLight(0xffffff, 0.9);
-dir.position.set(4,6,3);
-scene.add(dir);
+// ✅ 光線加強
+scene.add(new THREE.AmbientLight(0xffffff, 0.9));
 
-// ground
+const key = new THREE.DirectionalLight(0xffffff, 1.0);
+key.position.set(5, 7, 4);
+scene.add(key);
+
+const fill = new THREE.DirectionalLight(0xffffff, 0.55);
+fill.position.set(-4, 3, -2);
+scene.add(fill);
+
+// 地台：淡灰，避免同模型撞色
 const ground = new THREE.Mesh(
   new THREE.CircleGeometry(2.25, 64),
-  new THREE.MeshStandardMaterial({color:0xffffff, roughness:0.95, metalness:0.0})
+  new THREE.MeshStandardMaterial({color:0xf3f4f6, roughness:0.95, metalness:0.0})
 );
 ground.rotation.x = -Math.PI/2;
-ground.position.y = -0.95;
+ground.position.y = -1.05;
 scene.add(ground);
 
-// current mesh
-let solidMesh = null;
+// ✅ 用 Group 包住：模型 + 邊線（關鍵）
+let solidGroup = null;
 
-function createSolid(n, type){
-  const material = new THREE.MeshStandardMaterial({
-    color: 0xffffff,
+function createSolidGroup(n, type){
+  const group = new THREE.Group();
+
+  // ✅ 模型材質：淺灰（一定睇到）
+  const meshMat = new THREE.MeshStandardMaterial({
+    color: 0xd1d5db,
     roughness: 0.35,
-    metalness: 0.08
+    metalness: 0.06
   });
 
+  let geom;
   if(type === "prism"){
-    // n角柱：CylinderGeometry（頂底同半徑）= n 邊形柱
-    const geom = new THREE.CylinderGeometry(1.0, 1.0, 1.8, n, 1, false);
-    const mesh = new THREE.Mesh(geom, material);
-    mesh.position.y = 0.1;
-    return mesh;
+    // n角柱：CylinderGeometry
+    geom = new THREE.CylinderGeometry(1.0, 1.0, 1.8, n, 1, false);
+  }else{
+    // n角錐：ConeGeometry
+    geom = new THREE.ConeGeometry(1.1, 2.1, n, 1, false);
   }
 
-  // n角錐：ConeGeometry 底部為 n 邊形
-  const geom = new THREE.ConeGeometry(1.1, 2.1, n, 1, false);
-  const mesh = new THREE.Mesh(geom, material);
+  const mesh = new THREE.Mesh(geom, meshMat);
   mesh.position.y = 0.05;
-  return mesh;
+  group.add(mesh);
+
+  // ✅ 黑色邊線：學生一眼見到形狀
+  const edges = new THREE.EdgesGeometry(geom, 20);
+  const line = new THREE.LineSegments(
+    edges,
+    new THREE.LineBasicMaterial({ color: 0x111827 })
+  );
+  line.position.copy(mesh.position);
+  group.add(line);
+
+  return group;
 }
 
 function setSolid(n, type){
-  if(solidMesh) scene.remove(solidMesh);
-  solidMesh = createSolid(n, type);
-  scene.add(solidMesh);
+  if(solidGroup) scene.remove(solidGroup);
+  solidGroup = createSolidGroup(n, type);
+  scene.add(solidGroup);
 
   controls.target.set(0, 0.1, 0);
   controls.update();
@@ -303,11 +324,8 @@ function makeOption(groupKey, text){
   b.textContent = text;
   b.onclick = () => {
     selected[groupKey] = text;
-
-    // toggle selected within group
     const groupEl = groupKey==="A"?els.groupA:groupKey==="B"?els.groupB:groupKey==="C"?els.groupC:els.groupD;
     [...groupEl.children].forEach(ch => ch.classList.toggle("selected", ch.textContent===text));
-
     updateSubmitState();
   };
   return b;
@@ -325,13 +343,12 @@ function buildCards(){
   const ansD = `它的名字是（${shapeName(n,type)}）`;
   current.answers = {A:ansA,B:ansB,C:ansC,D:ansD};
 
-  // A: fixed 2
+  // A
   shuffle(["它是柱體","它是錐"]).forEach(t => els.groupA.appendChild(makeOption("A", t)));
-
-  // B: fixed 2
+  // B
   shuffle(["它的側面是三角形","它的側面是四邊形"]).forEach(t => els.groupB.appendChild(makeOption("B", t)));
 
-  // C: 1 correct + 2 distractors (from other solids)
+  // C：1 correct + 2 distractors
   const correctFace = facesCount(n,type);
   const facesPool = [];
   uniquePush(facesPool, correctFace);
@@ -344,7 +361,7 @@ function buildCards(){
   shuffle(facesPool.map(v => `它總共有（${v}）個面`))
     .forEach(t => els.groupC.appendChild(makeOption("C", t)));
 
-  // D: 1 correct + 3 distractors
+  // D：1 correct + 3 distractors
   const namesPool = [];
   uniquePush(namesPool, shapeName(n,type));
   while(namesPool.length < 4){
@@ -356,7 +373,6 @@ function buildCards(){
   shuffle(namesPool.map(v => `它的名字是（${v}）`))
     .forEach(t => els.groupD.appendChild(makeOption("D", t)));
 
-  // top meta
   els.meta.textContent = `本關圖形：${shapeName(n,type)}（請配對 4 類字卡）`;
 }
 
@@ -368,7 +384,7 @@ function newQuestion(){
   total += 1;
   els.score.textContent = `已通關：${cleared}　｜　總題數：${total}`;
 
-  // ✅ 在遊戲平台中顯示：Three.js 即時生成 + 顯示
+  // ✅ 生成 + 顯示 3D
   setSolid(n, type);
 
   // build cards
@@ -395,7 +411,6 @@ function submit(){
   }
 }
 
-// events
 els.submit.addEventListener("click", submit);
 els.newBtn.addEventListener("click", newQuestion);
 els.resetBtn.addEventListener("click", resetSelection);
