@@ -12,27 +12,16 @@
       background:#f6f7fb;
       color:#111827;
     }
-
     header{
       padding:16px;
       background:#ffffff;
       border-bottom:1px solid #e5e7eb;
     }
-
     header h1{ margin:0; font-size:18px; }
     header p{ margin:6px 0 0; font-size:13px; color:#6b7280; }
 
-    .wrap{
-      max-width:1100px;
-      margin:0 auto;
-      padding:16px;
-    }
-
-    .top{
-      display:grid;
-      grid-template-columns: 1.1fr 1.9fr;
-      gap:14px;
-    }
+    .wrap{ max-width:1100px; margin:0 auto; padding:16px; }
+    .top{ display:grid; grid-template-columns: 1.1fr 1.9fr; gap:14px; }
 
     .panel{
       background:#ffffff;
@@ -47,8 +36,8 @@
       display:flex;
       justify-content:space-between;
       align-items:center;
+      gap:10px;
     }
-
     .bd{ padding:14px; }
 
     button{
@@ -59,16 +48,13 @@
       cursor:pointer;
       font-size:14px;
     }
-
     button.primary{
       background:#2563eb;
       color:#ffffff;
       border:none;
     }
+    button:disabled{ opacity:.5; cursor:not-allowed; }
 
-    button:disabled{ opacity:.5; }
-
-    /* 圖片區 */
     #imgWrap{
       height:360px;
       border:1px solid #e5e7eb;
@@ -78,12 +64,7 @@
       justify-content:center;
       background:#ffffff;
     }
-
-    #shapeImg{
-      width:100%;
-      height:100%;
-      object-fit:contain;
-    }
+    #shapeImg{ width:100%; height:100%; object-fit:contain; display:block; }
 
     .status{
       margin-top:10px;
@@ -92,32 +73,24 @@
       border:1px dashed #e5e7eb;
       font-size:14px;
       color:#374151;
+      line-height:1.45;
     }
-
     .good{ background:#ecfdf5; border-color:#86efac; }
     .bad{ background:#fef2f2; border-color:#fecaca; }
 
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap:12px;
-    }
-
-    .group h3{
-      margin:0 0 6px;
-      font-size:14px;
-    }
+    .grid{ display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; }
+    .group{ border:1px solid #e5e7eb; border-radius:12px; padding:12px; }
+    .group h3{ margin:0 0 8px; font-size:14px; }
 
     .opts{ display:flex; flex-wrap:wrap; gap:8px; }
-
     .opt{
       padding:8px 10px;
       border:1px solid #e5e7eb;
       border-radius:10px;
       cursor:pointer;
       background:#ffffff;
+      user-select:none;
     }
-
     .opt.selected{
       outline:2px solid rgba(37,99,235,.35);
       border-color:#2563eb;
@@ -131,6 +104,7 @@
       align-items:center;
       font-size:13px;
       color:#6b7280;
+      gap:10px;
     }
 
     @media(max-width:900px){
@@ -143,7 +117,7 @@
 <body>
 <header>
   <h1>立體圖形配對通關</h1>
-  <p>觀察左邊立體圖形圖片，完成右邊四類配對。</p>
+  <p>觀察左邊立體圖形圖片，完成右邊四類配對。四類都正確先通關。</p>
 </header>
 
 <div class="wrap">
@@ -152,7 +126,10 @@
     <!-- 左邊圖片 -->
     <div class="panel">
       <div class="hd">
-        <strong>立體圖形</strong>
+        <div>
+          <strong>立體圖形</strong>
+          <div style="font-size:13px;color:#6b7280;margin-top:4px;" id="meta">請觀察圖形，完成配對。</div>
+        </div>
         <div>
           <button id="btnNew">下一題</button>
           <button id="btnReset">重設</button>
@@ -160,11 +137,9 @@
       </div>
       <div class="bd">
         <div id="imgWrap">
-          <img id="shapeImg" />
+          <img id="shapeImg" alt="立體圖形" />
         </div>
-        <div id="status" class="status">
-          提示：請完成右邊四類配對。
-        </div>
+        <div id="status" class="status">提示：四類都要揀，先可以提交。</div>
       </div>
     </div>
 
@@ -195,7 +170,10 @@
       </div>
       <div class="footer">
         <span id="score">已通關：0 ｜ 總題數：0</span>
-        <button class="primary" id="btnSubmit" disabled>提交</button>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span id="hint">四類都要揀先可提交</span>
+          <button class="primary" id="btnSubmit" disabled>提交</button>
+        </div>
       </div>
     </div>
 
@@ -203,117 +181,149 @@
 </div>
 
 <script>
-/* ===== 資料 ===== */
+/* ===== 題庫 ===== */
 const Ns = [3,4,5];
 const Types = ["pyramid","prism"];
-const map = {3:"三",4:"四",5:"五"};
+const zhN = {3:"三",4:"四",5:"五"};
 
-function shapeName(n,t){ return map[n] + (t==="pyramid"?"角錐":"角柱"); }
-function faces(n,t){ return t==="pyramid"? n+1 : n+2; }
-function imgPath(n,t){ return t + n + ".svg"; }
+function shapeName(n,t){ return zhN[n] + (t==="pyramid" ? "角錐" : "角柱"); }
+function faces(n,t){ return t==="pyramid" ? (n+1) : (n+2); }
+function imgPath(n,t){ return `${t}${n}.svg`; } // 同一層
 
 /* ===== 狀態 ===== */
-let current, cleared=0, total=0;
-let pick={A:null,B:null,C:null,D:null};
+let current = null;
+let cleared = 0, total = 0;
+let pick = {A:null,B:null,C:null,D:null};
 
 /* ===== DOM ===== */
-const img=document.getElementById("shapeImg");
-const status=document.getElementById("status");
-const score=document.getElementById("score");
-const submit=document.getElementById("btnSubmit");
-const btnNew=document.getElementById("btnNew");
-const btnReset=document.getElementById("btnReset");
-const groups={A:A,B:B,C:C,D:D};
+const img = document.getElementById("shapeImg");
+const status = document.getElementById("status");
+const score = document.getElementById("score");
+const submit = document.getElementById("btnSubmit");
+const btnNew = document.getElementById("btnNew");
+const btnReset = document.getElementById("btnReset");
+const hint = document.getElementById("hint");
+const meta = document.getElementById("meta");
+const groups = {A:document.getElementById("A"), B:document.getElementById("B"), C:document.getElementById("C"), D:document.getElementById("D")};
 
 /* ===== 工具 ===== */
-function shuffle(a){
-  const b=a.slice();
-  for(let i=b.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [b[i],b[j]]=[b[j],b[i]];
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
   }
-  return b;
+  return a;
+}
+function sample(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function setStatus(type, text){
+  status.className = "status" + (type ? (" " + type) : "");
+  status.textContent = text;
 }
 
-/* ===== 功能 ===== */
 function resetPick(){
-  pick={A:null,B:null,C:null,D:null};
+  pick = {A:null,B:null,C:null,D:null};
   document.querySelectorAll(".opt").forEach(o=>o.classList.remove("selected"));
-  submit.disabled=true;
-  status.className="status";
-  status.textContent="提示：請完成右邊四類配對。";
+  submit.disabled = true;
+  hint.textContent = "四類都要揀先可提交";
+  meta.textContent = "請觀察圖形，完成配對。";
+  setStatus("", "提示：四類都要揀，先可以提交。");
 }
 
-function option(group,text){
-  const d=document.createElement("div");
-  d.className="opt";
-  d.textContent=text;
-  d.onclick=()=>{
-    pick[group]=text;
-    [...groups[group].children].forEach(c=>c.classList.toggle("selected",c===d));
-    submit.disabled=!(pick.A&&pick.B&&pick.C&&pick.D);
+function makeOpt(groupKey, text){
+  const d = document.createElement("div");
+  d.className = "opt";
+  d.textContent = text;
+  d.onclick = ()=>{
+    pick[groupKey] = text;
+    [...groups[groupKey].children].forEach(c=>c.classList.toggle("selected", c===d));
+    const ok = pick.A && pick.B && pick.C && pick.D;
+    submit.disabled = !ok;
+    hint.textContent = ok ? "已選四類，可以提交" : "四類都要揀先可提交";
   };
   return d;
 }
 
+/* ===== 生成每類選項（保證包含正確答案） ===== */
 function build(){
-  for(const k in groups) groups[k].innerHTML="";
+  for(const k in groups) groups[k].innerHTML = "";
   resetPick();
 
-  const {n,t}=current;
-  const ans={
-    A: t==="pyramid"?"它是錐":"它是柱體",
-    B: t==="pyramid"?"它的側面是三角形":"它的側面是四邊形",
+  const {n,t} = current;
+
+  // 正確答案（字串要同選項完全一致）
+  const ans = {
+    A: (t==="pyramid") ? "它是錐" : "它是柱體",
+    B: (t==="pyramid") ? "它的側面是三角形" : "它的側面是四邊形",
     C: `它總共有（${faces(n,t)}）個面`,
     D: `它的名字是（${shapeName(n,t)}）`
   };
-  current.ans=ans;
+  current.ans = ans;
 
-  shuffle(["它是柱體","它是錐"]).forEach(v=>groups.A.appendChild(option("A",v)));
-  shuffle(["它的側面是三角形","它的側面是四邊形"]).forEach(v=>groups.B.appendChild(option("B",v)));
-  shuffle([faces(n,t),5,6,7].slice(0,3)).forEach(v=>groups.C.appendChild(option("C",`它總共有（${v}）個面`)));
+  // A：固定兩張（一定有答案）
+  shuffle(["它是柱體","它是錐"]).forEach(v=>groups.A.appendChild(makeOpt("A", v)));
 
-  const names=[];
-  while(names.length<4){
-    const nm=shapeName(Ns[Math.floor(Math.random()*3)],Types[Math.floor(Math.random()*2)]);
-    if(!names.includes(nm)) names.push(nm);
+  // B：固定兩張（一定有答案）
+  shuffle(["它的側面是三角形","它的側面是四邊形"]).forEach(v=>groups.B.appendChild(makeOpt("B", v)));
+
+  // C：正確 + 2 個干擾（唯一、一定包含正確）
+  const correctFaces = faces(n,t);
+  const poolFaces = new Set([correctFaces]);
+  while(poolFaces.size < 3){
+    const n2 = sample(Ns);
+    const t2 = sample(Types);
+    poolFaces.add(faces(n2,t2));
   }
-  shuffle(names.map(v=>`它的名字是（${v}）`)).forEach(v=>groups.D.appendChild(option("D",v)));
+  shuffle([...poolFaces].map(v=>`它總共有（${v}）個面`))
+    .forEach(v=>groups.C.appendChild(makeOpt("C", v)));
+
+  // D：正確名字 + 3 個干擾（✅修正：一定包含正確）
+  const correctName = shapeName(n,t);
+  const poolNames = new Set([correctName]);
+  while(poolNames.size < 4){
+    const n2 = sample(Ns);
+    const t2 = sample(Types);
+    poolNames.add(shapeName(n2,t2));
+  }
+  shuffle([...poolNames].map(v=>`它的名字是（${v}）`))
+    .forEach(v=>groups.D.appendChild(makeOpt("D", v)));
 }
 
+/* ===== 出題 ===== */
 function newQ(){
-  current={n:Ns[Math.floor(Math.random()*3)],t:Types[Math.floor(Math.random()*2)]};
+  current = { n: sample(Ns), t: sample(Types), ans:null };
   total++;
-  score.textContent=`已通關：${cleared} ｜ 總題數：${total}`;
-  img.src=imgPath(current.n,current.t);
-  img.onerror=()=>{
-    status.className="status bad";
-    status.textContent="圖片未成功載入。請確認 pyramid3.svg 等圖片與 index.html 放在同一層，並已 commit。";
+  score.textContent = `已通關：${cleared} ｜ 總題數：${total}`;
+
+  img.src = imgPath(current.n, current.t);
+  img.onerror = ()=>{
+    setStatus("bad", "圖片未成功載入。請確認 pyramid3.svg、prism4.svg 等圖片與 index.html 放在同一層，並已 commit。");
   };
+
   build();
 }
 
+/* ===== 提交 ===== */
 function submitAns(){
-  const wrong=Object.keys(current.ans).filter(k=>pick[k]!==current.ans[k]);
-  if(wrong.length===0){
+  const wrong = Object.keys(current.ans).filter(k => pick[k] !== current.ans[k]);
+  if(wrong.length === 0){
     cleared++;
-    score.textContent=`已通關：${cleared} ｜ 總題數：${total}`;
-    status.className="status good";
-    status.textContent="🎉 通關成功！";
+    score.textContent = `已通關：${cleared} ｜ 總題數：${total}`;
+    setStatus("good", "🎉 通關成功！");
+    meta.textContent = `本關圖形：${shapeName(current.n, current.t)}`;
   }else{
-    status.className="status bad";
-    status.textContent="未通關，請再試。";
+    setStatus("bad", "未通關：有一類或以上未選對，請再試。");
   }
 }
 
 /* ===== 事件 ===== */
-btnNew.onclick=newQ;
-btnReset.onclick=resetPick;
-submit.onclick=submitAns;
+btnNew.onclick = newQ;
+btnReset.onclick = resetPick;
+submit.onclick = submitAns;
 
 /* ===== 開始 ===== */
 newQ();
 </script>
 </body>
 </html>
-
