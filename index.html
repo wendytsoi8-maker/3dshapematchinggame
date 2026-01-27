@@ -3,11 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>立體圖形配對通關（Three.js 生成）</title>
+  <title>立體圖形配對平台（Three.js 隨機生成）</title>
   <style>
     :root{
-      --bg:#f6f7fb; --card:#fff; --ink:#111827; --muted:#6b7280;
-      --line:#e5e7eb; --good:#16a34a; --bad:#dc2626; --accent:#2563eb;
+      --bg:#f6f7fb; --card:#fff; --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
     }
     body{ margin:0; font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif; background:var(--bg); color:var(--ink); }
     header{ padding:16px 18px; background:#fff; border-bottom:1px solid var(--line); }
@@ -16,46 +15,26 @@
 
     .wrap{ max-width:1100px; margin:0 auto; padding:16px 18px 28px; }
     .top{ display:grid; grid-template-columns: 1.15fr 1.85fr; gap:14px; align-items:start; }
+
     .panel{ background:var(--card); border:1px solid var(--line); border-radius:14px; box-shadow:0 8px 24px rgba(0,0,0,.06); }
     .panel .hd{ padding:12px 14px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:10px; }
     .panel .hd .meta{ font-size:13px; color:var(--muted); }
     .panel .bd{ padding:12px 14px; }
 
-    /* ✅ 重要：canvas 容器要有實際高度 */
-    #canvasWrap{ height:360px; border-radius:12px; overflow:hidden; background:#eef2ff; }
-    canvas{ display:block; width:100%; height:100%; }
+    #canvasWrap{
+      height:360px;
+      border-radius:12px;
+      overflow:hidden;
+      background:#eef2ff;
+    }
+    canvas{ width:100%; height:100%; display:block; }
 
     .controls{ display:flex; gap:8px; flex-wrap:wrap; }
     button{
       border:1px solid var(--line); background:#fff; padding:10px 12px; border-radius:12px;
       font-size:14px; cursor:pointer;
     }
-    button.primary{ background:var(--accent); color:#fff; border-color:transparent; }
-    button:disabled{ opacity:.5; cursor:not-allowed; }
-
-    .status{
-      margin-top:10px; padding:10px 12px; border-radius:12px;
-      border:1px dashed var(--line); color:var(--muted); font-size:14px; line-height:1.5;
-    }
-    .status.good{ border-color:rgba(22,163,74,.35); background:rgba(22,163,74,.07); color:#0f5f2b; }
-    .status.bad{ border-color:rgba(220,38,38,.35); background:rgba(220,38,38,.07); color:#7f1d1d; }
-
-    .grid{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; }
-    .group{ padding:12px 12px 14px; }
-    .group h3{ margin:0 0 8px; font-size:14px; color:#111827; }
-    .opts{ display:flex; flex-wrap:wrap; gap:8px; }
-    .opt{
-      padding:10px 10px; border-radius:12px; border:1px solid var(--line); background:#fff;
-      font-size:14px; cursor:pointer; user-select:none;
-    }
-    .opt.selected{ outline:2px solid rgba(37,99,235,.35); border-color:rgba(37,99,235,.55); }
-
-    .footerRow{
-      display:flex; gap:10px; align-items:center; justify-content:space-between;
-      padding:12px 14px; border-top:1px solid var(--line);
-    }
-    .score{ font-size:13px; color:var(--muted); }
-    .hint{ font-size:13px; color:var(--muted); }
+    .note{ margin-top:10px; padding:10px 12px; border-radius:12px; border:1px dashed var(--line); color:var(--muted); font-size:14px; line-height:1.5; }
 
     @media (max-width:900px){
       .top{ grid-template-columns: 1fr; }
@@ -65,8 +44,8 @@
 </head>
 <body>
 <header>
-  <h1>立體圖形配對通關（Three.js 生成 3D）</h1>
-  <p>每關先睇 3D 立體圖形，再喺四類字卡各揀一張。四類全部正確先算通關。</p>
+  <h1>立體圖形（左邊 Three.js 隨機生成）</h1>
+  <p>每次載入／按「下一題」會隨機出：三～五角錐 或 三～五角柱。拖拉可旋轉，滾輪可縮放。</p>
 </header>
 
 <div class="wrap">
@@ -79,344 +58,155 @@
           <div class="meta" id="shapeMeta">載入中…</div>
         </div>
         <div class="controls">
-          <button id="btnNew">下一題</button>
-          <button id="btnReset">重設選擇</button>
+          <button id="btnNew">下一題（隨機）</button>
         </div>
       </div>
       <div class="bd">
-        <div id="canvasWrap">
-          <canvas id="c"></canvas>
-        </div>
-        <div id="status" class="status">提示：拖拉旋轉，滾輪縮放（手機單指拖拉）。</div>
+        <div id="canvasWrap"><canvas id="c"></canvas></div>
+        <div class="note" id="note">提示：如果仍然睇唔到，開 F12 → Console，會顯示錯誤原因。</div>
       </div>
     </div>
 
-    <!-- 右：字卡 -->
+    <!-- 右：你之後可放配對字卡（暫時留空位） -->
     <div class="panel">
       <div class="hd">
-        <div style="font-weight:700;">四類字卡配對</div>
-        <div class="meta">每類揀 1 張 → 提交</div>
+        <div style="font-weight:700;">配對字卡區（你後續接回去）</div>
+        <div class="meta">右邊你照舊放四類字卡就得</div>
       </div>
-
-      <div class="bd">
-        <div class="grid">
-          <div class="panel group">
-            <h3>A 類：柱體／錐</h3>
-            <div class="opts" id="groupA"></div>
-          </div>
-          <div class="panel group">
-            <h3>B 類：側面形狀</h3>
-            <div class="opts" id="groupB"></div>
-          </div>
-          <div class="panel group">
-            <h3>C 類：總面數</h3>
-            <div class="opts" id="groupC"></div>
-          </div>
-          <div class="panel group">
-            <h3>D 類：名字</h3>
-            <div class="opts" id="groupD"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="footerRow">
-        <div class="score" id="score">已通關：0　｜　總題數：0</div>
-        <div style="display:flex; gap:8px; align-items:center;">
-          <span class="hint" id="pickHint">四類都要揀先可提交</span>
-          <button class="primary" id="btnSubmit" disabled>提交</button>
-        </div>
+      <div class="bd" style="color:var(--muted); font-size:14px; line-height:1.6;">
+        你而家最重要係先確保左邊 3D 一定顯示。<br/>
+        呢份已經用 Module 方式載入 three.js（GitHub Pages 最穩陣）。<br/>
+        之後我可以再幫你把「四類字卡配對」整合返落嚟。
       </div>
     </div>
   </div>
 </div>
 
-<!-- Three.js（GitHub Pages OK） -->
-<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-<script src="https://unpkg.com/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+<!-- ✅ GitHub Pages 最穩：用 ES Module -->
+<script type="module">
+  import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+  import { OrbitControls } from "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 
-<script>
-/** =========================
- *  立體資料 + 規則
- *  ========================= */
-const POLY_N = [3,4,5];
-const TYPES = ["pyramid","prism"]; // 角錐 / 角柱
-
-function shapeName(n, type){
-  const map = {3:"三",4:"四",5:"五"};
-  return map[n] + (type==="pyramid" ? "角錐" : "角柱");
-}
-function facesCount(n, type){
-  return (type==="pyramid") ? (n + 1) : (n + 2);
-}
-function lateralFaceLabel(type){
-  return (type==="pyramid") ? "它的側面是三角形" : "它的側面是四邊形";
-}
-function solidTypeLabel(type){
-  return (type==="pyramid") ? "它是錐" : "它是柱體";
-}
-function shuffle(arr){
-  const a = arr.slice();
-  for(let i=a.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [a[i],a[j]]=[a[j],a[i]];
-  }
-  return a;
-}
-function sampleOne(arr){
-  return arr[Math.floor(Math.random()*arr.length)];
-}
-function uniquePush(arr, item){
-  if(!arr.includes(item)) arr.push(item);
-}
-
-/** =========================
- *  DOM
- *  ========================= */
-const els = {
-  meta: document.getElementById("shapeMeta"),
-  status: document.getElementById("status"),
-  score: document.getElementById("score"),
-  pickHint: document.getElementById("pickHint"),
-  submit: document.getElementById("btnSubmit"),
-  newBtn: document.getElementById("btnNew"),
-  resetBtn: document.getElementById("btnReset"),
-  groupA: document.getElementById("groupA"),
-  groupB: document.getElementById("groupB"),
-  groupC: document.getElementById("groupC"),
-  groupD: document.getElementById("groupD"),
-};
-
-/** =========================
- *  Three.js：✅ 修正版（一定可見）
- *  ========================= */
-const canvas = document.getElementById("c");
-const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setClearColor(0xeef2ff, 1); // ✅ 背景色（唔透明，必定見到）
-
-const scene = new THREE.Scene();
-
-const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-camera.position.set(3.4, 2.4, 3.4);
-
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.08;
-
-// ✅ 光線加強
-scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-
-const key = new THREE.DirectionalLight(0xffffff, 1.0);
-key.position.set(5, 7, 4);
-scene.add(key);
-
-const fill = new THREE.DirectionalLight(0xffffff, 0.55);
-fill.position.set(-4, 3, -2);
-scene.add(fill);
-
-// 地台：淡灰，避免同模型撞色
-const ground = new THREE.Mesh(
-  new THREE.CircleGeometry(2.25, 64),
-  new THREE.MeshStandardMaterial({color:0xf3f4f6, roughness:0.95, metalness:0.0})
-);
-ground.rotation.x = -Math.PI/2;
-ground.position.y = -1.05;
-scene.add(ground);
-
-// ✅ 用 Group 包住：模型 + 邊線（關鍵）
-let solidGroup = null;
-
-function createSolidGroup(n, type){
-  const group = new THREE.Group();
-
-  // ✅ 模型材質：淺灰（一定睇到）
-  const meshMat = new THREE.MeshStandardMaterial({
-    color: 0xd1d5db,
-    roughness: 0.35,
-    metalness: 0.06
-  });
-
-  let geom;
-  if(type === "prism"){
-    // n角柱：CylinderGeometry
-    geom = new THREE.CylinderGeometry(1.0, 1.0, 1.8, n, 1, false);
-  }else{
-    // n角錐：ConeGeometry
-    geom = new THREE.ConeGeometry(1.1, 2.1, n, 1, false);
-  }
-
-  const mesh = new THREE.Mesh(geom, meshMat);
-  mesh.position.y = 0.05;
-  group.add(mesh);
-
-  // ✅ 黑色邊線：學生一眼見到形狀
-  const edges = new THREE.EdgesGeometry(geom, 20);
-  const line = new THREE.LineSegments(
-    edges,
-    new THREE.LineBasicMaterial({ color: 0x111827 })
-  );
-  line.position.copy(mesh.position);
-  group.add(line);
-
-  return group;
-}
-
-function setSolid(n, type){
-  if(solidGroup) scene.remove(solidGroup);
-  solidGroup = createSolidGroup(n, type);
-  scene.add(solidGroup);
-
-  controls.target.set(0, 0.1, 0);
-  controls.update();
-}
-
-function resize(){
+  const canvas = document.getElementById("c");
   const wrap = document.getElementById("canvasWrap");
-  const w = wrap.clientWidth;
-  const h = wrap.clientHeight;
-  renderer.setSize(w, h, false);
-  camera.aspect = w/h;
-  camera.updateProjectionMatrix();
-}
-window.addEventListener("resize", resize);
+  const meta = document.getElementById("shapeMeta");
 
-function animate(){
-  requestAnimationFrame(animate);
-  controls.update();
-  renderer.render(scene, camera);
-}
-resize();
-animate();
-
-/** =========================
- *  遊戲狀態 + 出題
- *  ========================= */
-let current = null; // {n, type, answers}
-let selected = {A:null,B:null,C:null,D:null};
-let cleared = 0;
-let total = 0;
-
-function resetSelection(){
-  selected = {A:null,B:null,C:null,D:null};
-  document.querySelectorAll(".opt").forEach(o => o.classList.remove("selected"));
-  els.submit.disabled = true;
-  els.pickHint.textContent = "四類都要揀先可提交";
-  els.status.className = "status";
-  els.status.textContent = "提示：拖拉旋轉，滾輪縮放（手機單指拖拉）。";
-}
-
-function clearGroups(){
-  els.groupA.innerHTML = "";
-  els.groupB.innerHTML = "";
-  els.groupC.innerHTML = "";
-  els.groupD.innerHTML = "";
-}
-
-function updateSubmitState(){
-  const ok = selected.A && selected.B && selected.C && selected.D;
-  els.submit.disabled = !ok;
-  els.pickHint.textContent = ok ? "已選四類，可以提交" : "四類都要揀先可提交";
-}
-
-function makeOption(groupKey, text){
-  const b = document.createElement("div");
-  b.className = "opt";
-  b.textContent = text;
-  b.onclick = () => {
-    selected[groupKey] = text;
-    const groupEl = groupKey==="A"?els.groupA:groupKey==="B"?els.groupB:groupKey==="C"?els.groupC:els.groupD;
-    [...groupEl.children].forEach(ch => ch.classList.toggle("selected", ch.textContent===text));
-    updateSubmitState();
-  };
-  return b;
-}
-
-function buildCards(){
-  const {n, type} = current;
-  clearGroups();
-  resetSelection();
-
-  // correct answers
-  const ansA = solidTypeLabel(type);
-  const ansB = lateralFaceLabel(type);
-  const ansC = `它總共有（${facesCount(n,type)}）個面`;
-  const ansD = `它的名字是（${shapeName(n,type)}）`;
-  current.answers = {A:ansA,B:ansB,C:ansC,D:ansD};
-
-  // A
-  shuffle(["它是柱體","它是錐"]).forEach(t => els.groupA.appendChild(makeOption("A", t)));
-  // B
-  shuffle(["它的側面是三角形","它的側面是四邊形"]).forEach(t => els.groupB.appendChild(makeOption("B", t)));
-
-  // C：1 correct + 2 distractors
-  const correctFace = facesCount(n,type);
-  const facesPool = [];
-  uniquePush(facesPool, correctFace);
-  while(facesPool.length < 3){
-    const n2 = sampleOne(POLY_N);
-    const t2 = sampleOne(TYPES);
-    const f2 = facesCount(n2,t2);
-    if(f2 !== correctFace) uniquePush(facesPool, f2);
+  // 基本檢查：canvas 有冇尺寸
+  function assertSize(){
+    const w = wrap.clientWidth, h = wrap.clientHeight;
+    if(!w || !h) console.warn("canvasWrap size is 0. Please check CSS height/visibility.");
   }
-  shuffle(facesPool.map(v => `它總共有（${v}）個面`))
-    .forEach(t => els.groupC.appendChild(makeOption("C", t)));
 
-  // D：1 correct + 3 distractors
-  const namesPool = [];
-  uniquePush(namesPool, shapeName(n,type));
-  while(namesPool.length < 4){
-    const n2 = sampleOne(POLY_N);
-    const t2 = sampleOne(TYPES);
-    const nm = shapeName(n2,t2);
-    if(nm !== shapeName(n,type)) uniquePush(namesPool, nm);
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setClearColor(0xeef2ff, 1);
+
+  const scene = new THREE.Scene();
+
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  camera.position.set(3.4, 2.4, 3.4);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+
+  // 光
+  scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+  const key = new THREE.DirectionalLight(0xffffff, 1.0);
+  key.position.set(5, 7, 4);
+  scene.add(key);
+  const fill = new THREE.DirectionalLight(0xffffff, 0.55);
+  fill.position.set(-4, 3, -2);
+  scene.add(fill);
+
+  // 地台
+  const ground = new THREE.Mesh(
+    new THREE.CircleGeometry(2.25, 64),
+    new THREE.MeshStandardMaterial({ color: 0xf3f4f6, roughness: 0.95, metalness: 0.0 })
+  );
+  ground.rotation.x = -Math.PI/2;
+  ground.position.y = -1.05;
+  scene.add(ground);
+
+  // ✅ 模型 group（mesh + edges）
+  let solidGroup = null;
+
+  function shapeName(n, type){
+    const map = {3:"三",4:"四",5:"五"};
+    return map[n] + (type === "pyramid" ? "角錐" : "角柱");
   }
-  shuffle(namesPool.map(v => `它的名字是（${v}）`))
-    .forEach(t => els.groupD.appendChild(makeOption("D", t)));
 
-  els.meta.textContent = `本關圖形：${shapeName(n,type)}（請配對 4 類字卡）`;
-}
+  function createSolidGroup(n, type){
+    const group = new THREE.Group();
 
-function newQuestion(){
-  const n = sampleOne(POLY_N);
-  const type = sampleOne(TYPES);
-  current = {n, type, answers:null};
+    const meshMat = new THREE.MeshStandardMaterial({
+      color: 0xd1d5db,
+      roughness: 0.35,
+      metalness: 0.06
+    });
 
-  total += 1;
-  els.score.textContent = `已通關：${cleared}　｜　總題數：${total}`;
+    let geom;
+    if(type === "prism"){
+      geom = new THREE.CylinderGeometry(1.0, 1.0, 1.8, n, 1, false);
+    }else{
+      geom = new THREE.ConeGeometry(1.1, 2.1, n, 1, false);
+    }
 
-  // ✅ 生成 + 顯示 3D
-  setSolid(n, type);
+    const mesh = new THREE.Mesh(geom, meshMat);
+    mesh.position.y = 0.05;
+    group.add(mesh);
 
-  // build cards
-  buildCards();
-}
+    const edges = new THREE.EdgesGeometry(geom, 20);
+    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x111827 }));
+    line.position.copy(mesh.position);
+    group.add(line);
 
-function submit(){
-  if(!current?.answers) return;
-
-  const wrong = [];
-  if(selected.A !== current.answers.A) wrong.push("A（柱體／錐）");
-  if(selected.B !== current.answers.B) wrong.push("B（側面形狀）");
-  if(selected.C !== current.answers.C) wrong.push("C（總面數）");
-  if(selected.D !== current.answers.D) wrong.push("D（名字）");
-
-  if(wrong.length === 0){
-    cleared += 1;
-    els.score.textContent = `已通關：${cleared}　｜　總題數：${total}`;
-    els.status.className = "status good";
-    els.status.textContent = "🎉 通關成功！四類都配對正確。你可以按「下一題」再玩。";
-  }else{
-    els.status.className = "status bad";
-    els.status.textContent = `未通關：以下類別未配對正確 → ${wrong.join("、")}。請再試。`;
+    return group;
   }
-}
 
-els.submit.addEventListener("click", submit);
-els.newBtn.addEventListener("click", newQuestion);
-els.resetBtn.addEventListener("click", resetSelection);
+  function setSolid(n, type){
+    if(solidGroup) scene.remove(solidGroup);
+    solidGroup = createSolidGroup(n, type);
+    scene.add(solidGroup);
 
-// start
-newQuestion();
+    controls.target.set(0, 0.1, 0);
+    controls.update();
+
+    meta.textContent = `本關圖形：${shapeName(n, type)}（隨機生成）`;
+  }
+
+  // ✅ 隨機出題：三～五角錐／三～五角柱
+  function randomSolid(){
+    const n = [3,4,5][Math.floor(Math.random()*3)];
+    const type = (Math.random() < 0.5) ? "pyramid" : "prism";
+    setSolid(n, type);
+  }
+
+  function resize(){
+    const w = wrap.clientWidth;
+    const h = wrap.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+
+  window.addEventListener("resize", () => { resize(); });
+
+  function animate(){
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+
+  // 初始化
+  assertSize();
+  resize();
+  animate();
+  randomSolid();
+
+  document.getElementById("btnNew").addEventListener("click", () => {
+    randomSolid();
+  });
 </script>
 </body>
 </html>
