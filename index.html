@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>立體圖形配對大挑戰</title>
+  <title>立體圖形配對大挑戰（3-8角）</title>
 
   <style>
     :root{
@@ -391,7 +391,7 @@
   <header>
     <div class="topbar">
       <div>
-        <h1>🎮 立體圖形配對大挑戰</h1>
+        <h1>🎮 立體圖形配對大挑戰（3–8角）</h1>
         <div class="sub">四類都要配對正確先通關：A 角柱/角錐｜B 側面形狀｜C 面數｜D 名字。通關自動下一題！</div>
       </div>
 
@@ -485,24 +485,37 @@
 
 <script>
 /* =========================================================
-   ✅ 切換圖片格式：只改呢一行
+   ✅ 圖片格式：只改呢一行
    - 用 SVG： "svg"
    - 用 PNG： "png"
 ========================================================= */
-const IMAGE_EXT = "png"; // ← 你要 PNG 就保持 "png"
+const IMAGE_EXT = "png";
 
-/* ========= 固定 6 個題庫 ========= */
-const SHAPES = [
-  { n:3, t:"pyramid", name:"三角錐" },
-  { n:4, t:"pyramid", name:"四角錐" },
-  { n:5, t:"pyramid", name:"五角錐" },
-  { n:3, t:"prism",   name:"三角柱" },
-  { n:4, t:"prism",   name:"四角柱" },
-  { n:5, t:"prism",   name:"五角柱" },
-];
+/* =========================================================
+   ✅ 題庫：三至八角錐 / 三至八角柱
+   - 圖片檔名規則：
+     pyramid3.png ... pyramid8.png
+     prism3.png   ... prism8.png
+========================================================= */
+const MIN_N = 3;
+const MAX_N = 8;
+const TYPES = ["pyramid", "prism"];
+const TYPE_NAME = { pyramid: "角錐", prism: "角柱" };
 
-function facesCount(n,t){ return (t==="pyramid") ? (n+1) : (n+2); }
-function imgPath(n,t){ return t + n + "." + IMAGE_EXT; } // 同一層
+function facesCount(n, t){
+  return (t === "pyramid") ? (n + 1) : (n + 2);
+}
+function imgPath(n, t){
+  return t + n + "." + IMAGE_EXT;
+}
+
+// 生成完整題庫（共 12 個）
+const SHAPES = [];
+for(let n = MIN_N; n <= MAX_N; n++){
+  for(const t of TYPES){
+    SHAPES.push({ n, t, name: String(n) + TYPE_NAME[t] }); // 例如 "3角錐"
+  }
+}
 
 /* ========= DOM ========= */
 const el = {
@@ -565,7 +578,7 @@ let total = 0;
 let streak = 0;
 let autoTimer = null;
 
-/* Countdown：✅ 60 秒 */
+/* Countdown：60 秒 */
 let timeMax = 60;
 let timeLeft = timeMax;
 let intervalId = null;
@@ -585,7 +598,6 @@ function setStatus(kind, text){
   el.status.className = "status" + (kind ? (" " + kind) : "");
   el.status.querySelector("span:last-child").textContent = text;
 }
-
 function clearAuto(){
   if(autoTimer){ clearTimeout(autoTimer); autoTimer = null; }
 }
@@ -644,7 +656,7 @@ function buildCards(){
 
   const {n,t,name} = current;
 
-  // 正確答案（固定字串）
+  // 正確答案（字串固定，確保比對永遠正確）
   current.ans = {
     A: (t==="prism") ? "角柱" : "角錐",
     B: (t==="prism") ? "側面是四邊形" : "側面是三角形",
@@ -652,13 +664,13 @@ function buildCards(){
     D: "名字是（" + name + "）",
   };
 
-  // A
+  // A（固定兩張）
   shuffle(["角柱","角錐"]).forEach(v=> el.A.appendChild(makeOpt("A", v)));
 
-  // B
+  // B（固定兩張）
   shuffle(["側面是三角形","側面是四邊形"]).forEach(v=> el.B.appendChild(makeOpt("B", v)));
 
-  // C：正確 + 2 干擾（唯一）
+  // C：正確 + 2 干擾（保證唯一）
   const correctFaces = facesCount(n,t);
   const faceSet = new Set([correctFaces]);
   while(faceSet.size < 3){
@@ -668,7 +680,7 @@ function buildCards(){
   shuffle([...faceSet].map(v=>"總共有（" + v + "）個面"))
     .forEach(v=> el.C.appendChild(makeOpt("C", v)));
 
-  // D：✅ 必含正確（從 6 個固定名字抽）
+  // D：正確名字 + 3 干擾（從其餘 11 個抽，✅必含正確）
   const namesAll = SHAPES.map(s=>s.name);
   const rest = namesAll.filter(x => x !== name);
   const dOpts = shuffle(rest).slice(0,3);
@@ -685,7 +697,10 @@ function loadImage(n,t){
 
   el.img.src = imgPath(n,t);
   el.img.onerror = ()=>{
-    setStatus("bad", "圖片載入失敗：請確認 " + imgPath(3,"pyramid") + "、" + imgPath(4,"prism") + " 等檔案與 index.html 放同一層，且檔名完全一致（大小寫都要同）。");
+    setStatus("bad",
+      "圖片載入失敗：請確認 " + imgPath(MIN_N,"pyramid") + "、" + imgPath(MAX_N,"prism") +
+      " 等檔案與 index.html 放同一層，且檔名完全一致（大小寫都要同）。"
+    );
   };
 }
 
